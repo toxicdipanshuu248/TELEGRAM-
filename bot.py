@@ -3,15 +3,6 @@
 DEV Matrix Cluster - Multi-Bot Telegram Controller
 ====================================================
 Features:
-- Custom prefix, admin management, ping, raid, tspam, attack, status, slide, sync, bnc
-- Fancy Unicode font for replies
-- Keep-alive server 24/7
-- Template-based spam (tspam) with style numbers
-- Simple name changer (nc) with multiple emoji/symbol sets via style number and mode
-- RAID styles 1-6 as per provided JS logic
-- Block NC (bnc) with ×emoji× target ×emoji× and 25 threads
-- Slide reply spam with custom texts
-"""
 
 import asyncio
 import json
