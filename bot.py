@@ -596,7 +596,7 @@ async def slide_loop(bot, chat_id, reply_to_msg_id, text, task_id):
 # ==================== COMMAND HANDLERS ====================
 async def start_cmd(update, context, args):
     menu = (
-        to_fancy(🫍ᯓ 𝐌⃝ᴀнσɾαgᴀ ⋆་༘࿐ 🪽𓆪` - COMMAND CENTER**\n\n") +
+        to_fancy("🫍 **𝐌ᴀʜᴏʀᴀɢᴀ 𝐂ᴏᴍᴍᴀɴᴅ 𝐂ᴇɴᴛʀᴇ **\n\n") +
         to_fancy(f"Prefix: {controller.prefix}\n") +
         to_fancy(f"Bots Active: {len(controller.bots)}/9\n\n") +
         to_fancy("📌 **Commands:**\n\n") +
