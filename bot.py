@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-# TELEGRAM DEV MATRIX CLUSTER
+# TELEGRAM POWERED BY DEV
 """
 
 import asyncio
