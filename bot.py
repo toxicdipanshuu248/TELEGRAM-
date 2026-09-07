@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-# TELEGRAM POWERED BY DEV
+# TELEGRAM POWERED BY DEV - MATRIX CARD EDITION V27
 """
 
 import asyncio
@@ -13,6 +13,7 @@ import time
 import sqlite3
 import threading
 import logging
+import tracemalloc
 import base64 as _b64
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from telegram import Update, ChatPermissions
@@ -20,7 +21,9 @@ from telegram.ext import Application, MessageHandler, filters, ContextTypes
 from telegram.error import RetryAfter, TimedOut, NetworkError
 import traceback
 import io
-import unicodedata
+
+tracemalloc.start()
+BOT_START_TIME = time.time()
 
 # ==================== FIX UNICODE ====================
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -66,48 +69,52 @@ FANCY_MAP = {
 }
 
 def to_fancy(text):
-    return ''.join(FANCY_MAP.get(ch, ch) for ch in text)
+    return ''.join(FANCY_MAP.get(ch, ch) for ch in str(text))
 
-# ==================== DEFAULT NC EMOJIS ====================
+def format_uptime(seconds):
+    m, s = divmod(int(seconds), 60)
+    h, m = divmod(m, 60)
+    d, h = divmod(h, 24)
+    if d > 0:
+        return f"{d}d {h}h {m}m"
+    if h > 0:
+        return f"{h}h {m}m {s}s"
+    return f"{m}m {s}s"
+
+def make_card(title, lines, version="𝟐𝟕"):
+    body = "\n".join([f"│ ⌁ ̼͙̼͙̈́͆̈́ͯ̒̆̀̓ͧ̈́͆̈́ͯ̒̆̀̓ͧ͠͠ᯓ  {line}" for line in lines])
+    return (
+        f"ᚔ᚜ 𓆩『𓍼ֶָ֢˖ ࣪ꨄ𝐃⃝𝛆֟፝𝛎 .་༘࿐』𓆪 ᚛ᚔ\n\n"
+        f"┌──『𓍼ֶָ֢˖ {title} ˖ֶָ֢𓍼』──┐\n"
+        f"{body}\n"
+        f"└────────────────────┘\n\n"
+        f"┤ᚔ᚜🐉᚛ᚔ | ━━〔𝐕ᴇʀꜱɪᴏɴ:- {version} 〕━━"
+    )
+
+# ==================== DATA ARRAYS ====================
 DEFAULT_NC_EMOJIS = [
     "𓍼ོ↻", "˚⊱🪷⊰˚", "⛧⃝", "💘", "💝", "💖", "💗", "💓", "💞", "💕", "💟",
     "❣️", "❤️‍🔥", "❤️", "🩷", "🧡", "💛", "💚", "💙", "🩵", "💜", "🤎",
     "🖤", "🩶", "🤍", "💢", "🫯", "💤", "🫶🏻", "👀", "🏄‍♂️", "🤺", "🦄",
     "🦇", "🦅", "🕊", "🦚", "🦜", "🐦‍🔥", "🐊", "🐍", "🐉", "🦈", "🪼",
     "🪸", "🕸", "🕷", "🍃", "🍂", "🍁", "🛘", "🗻", "🌋", "🗽", "🗼", "🎡",
-    "🛑", "🚨", "⚓️", "🛟", "⏱️", "🕛", "🕧", "🕐", "🕜", "🕑", "🕝",
-    "🕒", "🕞", "🕓", "🕟", "🕠", "🕕", "🕦", "🕚", "🕥", "🕡", "🕢",
-    "🕣", "🕤", "🕙", "🌑", "🌒", "🌗", "🌖", "🌘", "🌕", "🌔", "🌟",
-    "❄️", "🌬", "🌪", "⚡️", "☄️", "🔥", "🌊", "🧿", "🪬", "🪩", "🪅",
-    "🧩", "🧶", "🪢", "🪀", "🎉", "📜", "📃", "📄", "📰", "🗞", "🖇",
-    "🔓", "⛓️‍💥", "⚙️"
+    "🛑", "🚨", "⚓️", "🛟", "⏱️", "🕛", "🕧", "🕐", "🕜", "🕑", "🕝"
 ]
 
-# ==================== NC STYLE EMOJI SETS (1-10) ====================
 NC_STYLE_EMOJIS = {
     1: ["🪭","🦠","🕯","🫍","🌌","⛓️💥","⚗️","🦪","🦕","🪐","🌀","🌊"],
     2: ["🫩","😩","🫪","😵","🥶","🤤","😪","🫣"],
     3: ["❤️","🩷","🧡","💛","💚","💙","🩵","💜","🤎","🖤","🩶","🤍"],
     4: ["🐳","🐋","🐬","🦭","🐟","🐠","🐡","🦈","🐙","🦞","🦐","🦑","🐚","🪸"],
-    5: ["🌺","🌻","🌼","🌷","🪻","🌱","🥀","🌲","🌳","🌴","🌵","🌾","☘️","🍀","🍁","🍂","🍃","🪾","🪷","💮","🌸","💐"],
-    6: ["🕛","🕧","🕐","🕜","🕑","🕝","🕒","🕞","🕓","🕟","🕔","🕠","🕕","🕡","🕖","🕢","🕗","🕘","🕤","🕙","🕥","🕚","🕦"],
+    5: ["🌺","🌻","🌼","🌷","🪻","🌱","🥀","🌲","🌳","🌴","🌵","🌾","☘️","🍀"],
+    6: ["🕛","🕧","🕐","🕜","🕑","🕝","🕒","🕞","🕓","🕟","🕔","🕠","🕕","🕡"],
     7: ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘","🌚"],
     8: ["☁️","⛅️","⛈️","🌤","🌥","🌦","🌧","🌨","🌩"],
-    9: ["⚽️","⚾️","🥎","🏀","🏐","🎱","🪩"],
-    10: ["🏳️‍🌈","🏳️‍⚧️","🏴‍☠️","🇦🇨","🇦🇩","🇦🇪","🇦🇫","🇦🇬","🇦🇱","🇦🇲","🇦🇴","🇦🇶","🇦🇷","🇦🇸","🇦🇹","🇦🇺","🇦🇼","🇦🇽","🇦🇿","🇧🇮","🇧🇬","🇧🇫","🇧🇪","🇧🇩","🇧🇧","🇧🇦","🇧🇱","🇧🇲","🇧🇴","🇧🇶","🇧🇷","🇧🇸","🇪🇺","🇪🇭","🇫🇯","🇬🇧","🇫🇲","🇬🇳","🇫🇷","🇲🇦","🇱🇻","🇱🇺","🇲🇦","🇲🇪","🇱🇮","🇰🇲","🇰🇾","🇸🇭","🇸🇲","🇸🇦","🇷🇺","🇸🇩","🇺🇦","🇺🇾","🇻🇬","🇺🇲"]
+    9: ["⚽️","⚾️","🥎","🏀","🏐","🎱","🪩"]
 }
-NC_STYLE_EMOJIS[10] = list(set(NC_STYLE_EMOJIS[10]))
 
-# ==================== BNC EMOJIS ====================
-BNC_EMOJIS = ['🫯','🐦🔥','🐬','🕷','🛘','🌀','💠','🐉','🫟','🫧','🪽','🪐','🐠','🕸']
+SYNC_SYMBOLS = ["❅", "⛥", "❂", "𖤓", "𖤐", "⨷", "ꨄ︎", "✹", ".✦ ݁˖", "˚. ᵎᵎ", "˚.🎀༘⋆", "⋆.˚🦋༘⋆"]
 
-# ==================== SYNC SYMBOLS ====================
-SYNC_SYMBOLS = [
-    "❅", "⛥", "❂", "𖤓", "𖤐", "⨷", "ꨄ︎", "✹", ".✦ ݁˖",
-    "˚. ᵎᵎ", "˚.🎀༘⋆", "⋆.˚🦋༘⋆"
-]
-
-# ==================== SPAM TEMPLATES (FULL LIST FROM OLD SCRIPT) ====================
 ALL_SPAM_TEMPLATES = [
 
     r'''✨ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________ C̸H̸A̸N̸D̸N̸I̸ R̸A̸A̸T̸ T̸H̸I̸ A̸U̸R̸     {target}   🐕   K̸I̸ M̸A̸A̸ C̸H̸U̸T̸ M̸A̸R̸V̸A̸N̸E̸ M̸E̸R̸E̸ S̸A̸T̸H̸ T̸H̸I̸       ࿐🫧 ________________.''',
@@ -162,15 +169,128 @@ TSPAM_STYLE_TEMPLATES = {
 
 }
 
-
-# ==================== SLIDE REPLY TEXTS (FULL LIST) ====================
-SLIDE_TEXTS = [
-    # ... (paste your complete slide texts) ...
-    "MAHORAHA ᴏᴘ ʙᴏʟ Nyto aaj try maa confirm chudegi😅💔😅💔😅💔",
-    # ... etc ...
+ATTACK_NC_PATTERNS = [
+    "⚡ 『{target}』 𝐊𝐈 𝐌𝐀𝐀 𝐂𝐇𝐔𝐃𝐈 𝐁𝐘 𝐃𝐄𝐕 ⚡",
+    "𓆩 𝐃𝐄𝐕 𝐏𝐀𝐏𝐀 𝐍𝐄 『{target}』 𝐊𝐎 𝐏𝐄𝐋𝐀 𓆪",
+    "💀 『{target}』 𝐂𝐇𝐀𝐓 𝐌𝐀𝐙𝐃𝐔𝐑 𝐑𝐀𝐍𝐃𝐈 💀",
+    "🔥 𝐌𝐀𝐊𝐀 𝐁𝐇𝐒𝐎𝐃𝐀  𝐇𝐀𝐍𝐆 『{target}』 𝐊𝐀 🔥",
+    "👑 𝐃𝐄𝐕 𝐎𝐍 𝐓𝐎𝐏 ☬ 『{target}』 𝐊𝐈 𝐌𝐊𝐁 👑"
 ]
 
-# ==================== RAID STYLES (UNCHANGED) ====================
+SLIDE_TEXTS = [
+    "MAHORAHA ᴏᴘ ʙᴏʟ Nyto aaj try ma confirm chudegi😅💔😅💔😅💔",
+    "Try maa rndy h maan le cp ka bahana deke mt ja 😭💥😭💥😭😭😭🔥",
+    "Idr aa tmkc me muth maru 👺❤️‍🩹👺❤️‍🩹👺",
+    "Idr aa try maa rndy bro",
+    "Apni Maa Ki Chutt 𝙆𝙃𝘼𝙇𝙀 कुतिया के लड़के 🤮🤮🖕🏻🖕🏻",
+    "Aurato ka kam roti bna na hota h tho Teri ma yaha kyu cudrhi🤬🤣😭😂🙏🏽💔💯🎈",
+    "( Chal Tatte Try Maa Ko Pyramid Me Chodu~🤍",
+    "𝐂ʜᴀʟ  𝙆𝙐𝙏𝙏𝙄𝙔𝘼 ᴋɪ 𝑨𝑼𝑳𝑨𝐷 𝐏ᴀᴠ 👉🦵 ᴾᴬᴷᴬᴰ 🔥 𝐓ᴇʀɪ 𝐌ᴀᴀ 𝐂ʜᴜᴅᴋᴇ 𝐁ʜᴀᴀɢ 𝐑ᴀʜɪ -----> 🏃🏻‍♀️🔥🤸🏻‍♀️🔥🏃🏻‍♀️🔥🤸🏻‍♀️🔥",
+    "say Mahoraga Baap 🦍",
+    " ᵀᵐᴷᶜ」🦋꙰  ~ ༈  ◠🇮🇳◡",
+    " Teri माँ Dead 😂 ",
+    " ᴛᴇʀᴀ ʙᴀᴀᴘ ᴄᴀʀᴘᴀɴᴛᴇʀ 🪚",
+    " ᴛʀʏ ᴅᴀᴅɪ sʟᴜᴛ⚀︎",
+    " ʏᴏᴜʀ ᴍᴏᴍ ᴡʜᴏʀᴇ👞",
+    " ɢᴜʟᴀᴍ ɢᴀɴᴅ ᴋᴀ ᴊᴏʀ ʟɢᴀ😆",
+    " ᴛᴇʀᴀ ʙᴀᴀᴘ Mahoraga 😼",
+    " ᴛᴇʀʏᴍᴀ ᴡᴇᴅs Mahoraga🍇",
+    " ʀɴᴅɪ ᴋᴀ ʟᴅᴄᴀ🍑",
+    " ʜᴠᴀʙᴀᴀᴢ ᴄʜᴜᴅᴋᴇ ᴍʀᴀ🧖",
+    " ʀᴀɴᴅɪ ᴋɪ ᴘᴀɪᴅᴀɪsʜ💔",
+    " ᴄʜᴜᴅ ɢʏɪ ᴍᴀᴀ ᴛᴇʀɪ 🤣",
+    " ᴀʙʙᴜ ʙᴏʟ Mahoraga ᴋᴏ 😈",
+    " ᴛᴇʀɪ ʙᴇʜᴇɴ ᴍᴇʀɪ ғᴀɴ 🥵",
+    " ᴅᴇᴋʜ Mahoraga ᴋɪ ᴘᴏᴡᴇʀ 💪",
+    " ᴀʙʙᴇ ɴᴀʟʟᴇ sᴜᴅʜᴀʀ ᴊᴀ 🤬",
+    " ᴛᴇʀᴀ ᴋʜᴀɴᴅᴀᴀɴ ᴄʜᴜᴅ ɢʏᴀ 💀",
+    " ᴛᴇʀᴇ Mahoraga ᴘᴀᴘᴀ ᴀᴀʏᴇ ʜ 🦁",
+    " ʙʜᴀᴀɢ ʙʜᴏsᴅɪᴋᴇ ʙʜᴀᴀɢ 🏃",
+    " ᴛᴇʀɪ ᴍᴀᴀ ᴋᴀ ʙʜᴏsᴅᴀ 😹",
+    " ɢᴀᴀɴᴅ ғᴀᴛᴛ ɢʏɪ? 🥺",
+    " ᴋᴀ sʏsᴛᴇᴍ ʜᴀɴɢ ʙʏ Mahoraga 💻",
+    " ᴛᴇʀᴀ ʙᴀᴀᴘ ᴀᴀʏᴀ 🤬",
+    " ᴍᴀᴀ ᴄʜᴜᴅᴀ ʟᴏᴅᴇ 🍑",
+    " ʀᴀɴᴅɪ ʀᴏɴᴀ ᴍᴀᴛ ᴋᴀʀ 😭",
+    " ᴛᴇʀɪ ᴍᴀᴀ ᴋɪ ᴄʜᴜᴛ ᴍᴇ ᴘᴀɪʀ 🦶",
+    " Mahoraga ᴏɴ ᴛᴏᴘ 🔝",
+    " ᴄʜᴀʟ ɴɪᴋᴀʟ ʟᴏᴅᴇ 🚪",
+    " ᴛᴇʀɪ ᴍᴀᴀ ᴋᴀ ʀᴀᴘᴇ 🔞",
+    " sᴀʏ Mahoraga ɪs ɢᴏᴅ ⚡",
+    " ʙᴏᴛs ᴀʀᴇ ғᴜᴄᴋɪɴɢ ʏᴏᴜ 🤖",
+    " ᴛᴇʀᴀ ʙᴀᴀᴘ ʜᴜ ᴍᴀɪ 🎅",
+    " ᴀᴜᴋᴀᴀᴛ ᴍᴇ ʀᴇʜ 🤬",
+    " ɢᴀᴀɴᴅ ᴍᴇ ᴅᴀɴᴅᴀ ᴅᴇ ᴅᴜɴɢᴀ 🎋",
+    " ᴄʜᴜᴘ ᴋᴀʀ ʀᴀɴᴅɪ 🤫",
+    " ᴛᴇʀɪ ʙᴇʜᴇɴ ᴄʜᴜᴅ ɢʏɪ 💃",
+    " ᴅᴇᴋʜ Mahoraga ᴋᴀ ᴋʜᴀᴜғ 😈",
+    " ʙʜᴀᴀɢ ᴍᴀᴛ ʀᴀɴᴅɪ 🏃‍♀️",
+    " ᴛᴇʀᴀ ɢʜᴀʀ ᴊᴀʏᴇɢᴀ 🏠",
+    " ᴍᴀᴀ ᴄʜᴜᴅᴀ ᴀᴘɴɪ 🖕",
+    " Mahoraga ᴏᴘ ʙᴏʟᴛᴇ 🔥",
+    " sʏsᴛᴇᴍ ᴘʜᴀᴀᴅ ᴅᴇɴɢᴇ 💥",
+    " ᴛᴇʀɪ ɢᴀᴀɴᴅ ʟᴀᴀʟ 🔴",
+    " ʙᴏʟ ɴᴀ ᴍᴀᴅᴀʀᴄʜᴏᴅ 🗣️",
+    " ʙᴏʟ Mahoraga ᴋɪ ᴊᴀɪ 🇮🇳",
+    "𝘾𝙔𝙐 𝙍𝙀 𝙍𝙉𝘿𝙔𝙆𝙀 𝘽𝘼𝘼𝙋 𝙎𝙀 𝘽𝙃𝙄𝘿𝙉𝙀 𝘼𝘼 𝙂𝙔𝘼?",
+    "𝘾𝙃𝙇 𝘾𝙃𝙐𝘿 𝘼𝘽 𝙍𝙉𝘿 𝙆𝙀 𝙋𝙄𝙇𝙀𝙀",
+    "𝙏𝙍𝙔 𝙈𝘼 𝙆𝙊 Mahoraga 𝘼𝘽𝘽𝙐 𝙋𝙀𝙇𝙀",
+    "𝘾𝙃𝙐𝘿𝙂𝙀𝙂𝘼 𝙎𝘼𝘼𝙇 𝘽𝙃𝙍 𝙏𝙐𝙏𝙊 𝘽𝙀𝙏𝘼 🍑",
+    "𝙔𝙀𝙃 𝙂𝙍𝙀𝙀𝙑 𝙁𝙔𝙏𝙀𝙍 𝙄𝙎𝙆𝙄 𝙈𝙆𝘽",
+    "𝙃𝙑𝘼𝘽𝘼𝘼𝙕 𝘽𝘼𝙉𝙀𝙂𝘼 𝙏𝙈𝙍",
+    "𝙅𝙇𝘿𝙄 𝙅𝙇𝘿𝙄 𝘾𝙃𝙐𝘿 Mahoraga 𝘼𝘽𝘽𝙐 𝘽𝙐𝙎𝙎𝙔 𝙃𝘼𝙄",
+    "𝘾𝙑𝙍 𝙆𝙍 𝙈𝘼𝙅𝘽𝙐𝙍𝙄𝙔𝘼 𝙉𝘼 𝙎𝙐𝙉𝘼",
+    "𝙏𝙀𝙍𝙄 𝙈𝘼 𝙆𝘼 𝙋𝘼𝙏𝙄 Mahoraga 𝙃𝘼𝙄",
+    "𝘽𝙃𝘼𝘼𝙂 𝙈𝘼𝙏 𝙋𝙄𝙇𝙇𝙀 𝙊𝙔𝙀",
+    "𝘼𝘽𝙀 𝙇𝙊𝘿𝙐 𝙏𝙀𝙍𝙄 𝙂𝘼𝙉𝘿 𝙈𝙀 𝘿𝘼𝙉𝘿𝘼",
+    "Mahoraga 𝙊𝙉 𝙏𝙊𝙋 𝘽𝘼𝘽𝙔",
+    "𝙏𝙀𝙍𝙄 𝙈𝘼 𝙆𝙄 𝘾𝙃𝙐𝙏 𝙈𝙀 𝘽𝙊𝙏 𝙆𝘼 𝙇𝙐𝙉𝘿",
+    "𝘽𝙃𝘼𝂂 𝘽𝙃𝙊𝙎𝘿𝙄𝙆𝙀 𝘽𝙃𝘼𝂂",
+    "𝘼𝙋𝙉𝙄 𝘼𝙈𝙈𝙄 𝙆𝙊 𝘽𝙃𝙀𝙅 𝙋𝘼𝙉𝙄 𝙉𝙄𝙆𝘼𝙇𝙉𝘼 𝙃",
+    "𝙏𝙀𝙍𝘼 𝙆𝙃𝘼𝙉𝘿𝘼𝙉 𝙆𝙃𝘼𝙏𝘼𝙈",
+    "Mahoraga 𝙆𝙄 𝘿𝙀𝙃𝙎𝙃𝘼𝙏",
+    "𝘽𝘼𝘼𝙋 𝙎𝙀 𝘽𝘼𝙆𝘾𝙃𝙊𝘿𝙄 𝙉𝙃𝙄",
+    "𝙏𝙀𝙍𝙄 𝙈𝘼 𝙆𝙊 𝘾𝙃𝙊𝘿 𝘿𝙐𝙉𝙂𝘼",
+    "𝙍𝘼𝙉𝘿𝙄 𝙆𝙀 𝘽𝘼𝘾𝘾𝙃𝙀",
+    "𝘼𝐐𝘼𝙏 𝙈𝙀 𝙍𝙀𝙃 𝙇𝙊𝘿𝙀",
+    "𝙏𝙀𝙍𝘼 𝘽𝘼𝘼𝙋 𝙃𝙐 𝙈𝘼𝙄",
+    "𝘾𝙃𝘼𝙇 𝙉𝙄𝙆𝘼𝙇 𝘽𝙃𝙊𝙎𝘿𝙄𝙆𝙀",
+    "𝙏𝙀𝙍𝙄 𝙈𝘼 𝙆𝘼 𝘽𝙃𝙊𝙎𝘿𝘼",
+    "Mahoraga ??𝙎 𝙂𝙊𝘿",
+    "𝙏𝙀𝙍𝙄 𝙂𝘼𝘼𝙉𝘿 𝙁𝘼𝘼𝘿 𝘿𝙐𝙉𝙂𝘼",
+    "𝙈𝘼𝘼 𝘾𝙃𝙐𝘿𝘼 𝘼𝙋𝙉𝙄",
+    "     𝐊ʏᴜ 𝐑ᴇ 𝐑ᴀɴᴅɪ 𝐌𝐀 ᴋᴇ 𝐋ᴀᴅᴄᴏ Mahoraga ᴀʙʙᴜ 𝐊ᴏ 𝐃ʙᴀ. ɴʜɪ 𝐏ᴀʀᴇ ᴄʏᴀ??🤬",
+    "तू छोटा था तब तेरी मां का स्तन पान करता था मैं, उसके दूध में 60% क्रीम होता था, तू रोते हुए आता था और मैं तुझे लात मारके भागता था बोलता था हट साले मेरे लन्ड से निकले हुए मैल",
+    "This message cannot be seen because you are randy",
+    "GRIB MA K BACHAY GHAR ME ATTA LE AA HATER कामज़ोर KA BAAP Mahoraga सरकार",
+    "घिनौनी रंडी के बच्चे तु बात बात पर अपनी माँ क्यूँ चुदवाता है मादरचोद",
+    "Chup kali maa ke रण्डी बच्चे",
+    "Chl Harmzadi Ke लड़के",
+    "Trymaa ki chut mein labubu",
+    "khadi ho ब्राह्मण guru दक्षिणा me mera lund pakad",
+    "Teri माँ के भोसड़े पर इतने बल्ले मारूंगा की IPL जीत जायेगी",
+    "Dar mat pagli bas piche se karenge",
+    "काले Doraemon रोता reh",
+    "NEKAL MADARCHOD",
+    "Yar apni ma mt nungy kr",
+    "randycy तेरी माँ ke बुर me न्युक phod dunga",
+    "end portal bn gya ab try ma iske andar chudegi",
+    "Teri takli maa ke sar pr per rkhkr bolunga jutte saaf kr rndy",
+    "jhutt bolke bachega tmkc Rndyke",
+    "क्या रे Chai Wale Ke Ladke बनाऊ तुझे Fyter",
+    "Teri mummy or papa kal accident me mar jaye",
+    "जब मैं तेरी माँ को जम कर चोदूंगा तो तेरी माँ रहम की भीख मांगेगी Samjha",
+    "oye rndi ke ldke भगा to teri maa चमार जाति ki राँड",
+    "सुबह शाम Teri माँ नंगी होगी",
+    "क्या सोचा है तेरे जैसे MajDuR के लिए अपना TiMe wAsTe करुंगा Eww निकाल MaDaRchOd के धुर",
+    "CHUP RNDIKE",
+    "100% TERI MAA KA GULABHI BOSHDA HACK KARLIYA",
+    "तुझ जैसे लोगो की Maa Ki Chut Mein अम्बुजा Cement से majboot ghar bna dena chahiye",
+    "tri ma रंग बिरंगी रंडी",
+    "चुप तेरी नानी का भोसड़ा",
+    "तेरी माँ की चुत में ok"
+]
+
 RAID_SUBJECT_LIMIT = 200
 RAID_TOP_EMOJIS = ['🪭','🦠','🕯','🫍','🌌','⛓️💥','⚗️','🦪','🦕','🪐','🌀','🌊']
 RAID1_FACE_EMOJIS = ['🫩','😩','🫪','😵','🥶','🤤','😪','🫣']
@@ -193,17 +313,14 @@ RAID3_LINES = [
     '{target} 𝐁𝐇𝐀𝐆𝐍𝐀 𝐍𝐘 𝐇 𝐆𝐀𝐑𝐈𝐁 𝐓𝐄𝐑𝐈 𝐌𝐀 𝐌𝐑𝐉𝐀𝐘𝐄𝐆𝐈 𝐕𝐑𝐍𝐀😤👻🩷',
     '{target} 𝐊𝐄 𝐆𝐀𝐑𝐈𝐁 𝐁𝐇𝐀𝐆 𝐊𝐀𝐈𝐒𝐄 𝐑𝐀𝐇𝐀 𝐇 𝐑𝐄𝐏𝐋𝐘 𝐊𝐑 𝐂𝐇𝐎𝐓𝐄𝐘 😂👻🩷',
     '{target} 𝐂𝐇𝐀𝐋 𝐓𝐄𝐑𝐈 𝐌𝐀 𝐗𝐇𝐎𝐃𝐔 𝐏𝐀𝐓𝐀𝐊 𝐏𝐀𝐓𝐀𝐊 𝐊𝐄🤣👻🩶'
-]
-RAID4_TAILS = ['✘✘','✘𓆪','✘✘_','✘_','✘𓆪_','✘⁀➴','✘⁀✘','✘⁀','✘_✘','✘__']
-RAID4_CHUNK = '𒈙𒈙𒈙𒈙𒌙⸻𒌙⸻𒌙⸻𒌙⸻𒌙⸻'
+RAID4_TAILS = ['✘✘','✘𓆪','✘✘_','✘_','✘𓆪_']
+RAID4_CHUNK = '𒈙𒈙𒈙𒈙'
 
 def grapheme_count(text):
     return len(text)
 
 def truncate_graphemes(text, max_len):
-    if max_len <= 0:
-        return ''
-    return text[:max_len]
+    return text[:max(0, max_len)]
 
 def raid_fit_compose(head, unit, unit_max, tail):
     cap = RAID_SUBJECT_LIMIT
@@ -217,9 +334,7 @@ def raid_fit_compose(head, unit, unit_max, tail):
     while grapheme_count(subject) > cap and head_keep > 0:
         head_keep -= 1
         subject = truncate_graphemes(head, head_keep) + '…' + unit * R + tail
-    if grapheme_count(subject) > cap:
-        subject = truncate_graphemes(subject, cap)
-    return subject
+    return truncate_graphemes(subject, cap)
 
 def raid_plain_fit(value, keep_tail=0):
     s = str(value)
@@ -231,29 +346,28 @@ def raid_plain_fit(value, keep_tail=0):
 
 def raid_style1_subject(name, rot):
     face = RAID1_FACE_EMOJIS[rot % len(RAID1_FACE_EMOJIS)]
-    head = face + ' ➣𓂃✧°《' + name + '》𝕃𝕌ℕ𝔻 ℂℍ𝕌𝕊 ℝ𝔸ℕ𝔻𝕀𝕂𝔼 𝔹ℂℂℍ𝔼 _° '
+    head = face + ' ➣𓂃✧°《' + name + '》𝕃𝕌ℕ𝔻 ℂℍ𝕌𝕊 ℝ𝔸ℕ𝔻𝕀𝕂𝔼 _° '
     tail = '➣ ' + RAID_TOP_EMOJIS[rot % len(RAID_TOP_EMOJIS)]
-    return raid_fit_compose(head, '➩─── ➬ ➬ ──── ➫', 15, tail)
+    return raid_fit_compose(head, '➩── ➬ ── ➫', 12, tail)
 
 def raid_style2_subject(name, rot):
     fruit = RAID2_FRUITS[rot % len(RAID2_FRUITS)]
-    s = name + ' 𝐓ᴍᴋᴄ 𝐌𝐞 ⌁ ̼͙̼͙̈́͆̈́ͯ̒̆̀̓ͧ̈́͆̈́ͯ̒̆̀̓ͧ͠͠ᯓ 『𓍼ֶָ֢˖۝' + fruit + 'ᚔ᚜🐉᚛ᚔ'
+    s = name + ' 𝐓ᴍᴋᴄ 𝐌𝐞 ⌁ ᯓ 『𓍼' + fruit + '🐉』'
     return raid_plain_fit(s, 0)
 
 def raid_style3_subject(name, rot):
     line = RAID3_LINES[rot % len(RAID3_LINES)]
-    raw = line.replace('{target}', name)
-    return raid_plain_fit(raw, 0)
+    return raid_plain_fit(line.replace('{target}', name), 0)
 
 def raid_style4_subject(name, rot):
-    head = '⁀✘  ' + name + ' 𝗧𝗘𝗥𝗜 𝗠𝗔𝗔 !! 𝗕𝗛𝗘𝗡 𝗞𝗢 𝗟𝗨𝗡𝗗 𝗣𝗘𝗥 𝗕𝗔𝗜𝗧𝗛𝗔 𝗞𝗔𝗥 𝗖𝗛𝗢𝗗𝗨𝗚𝗔 𝗥𝗔𝗡𝗗𝗜𝗞𝗘 𝗣𝗜𝗟𝗟𝗘 '
-    tail = '𒈙𒈙𒈙' + RAID4_TAILS[rot % len(RAID4_TAILS)]
-    return raid_fit_compose(head, RAID4_CHUNK, 3, tail)
+    head = '⁀✘ ' + name + ' 𝗧𝗘𝗥𝗜 𝗠𝗔𝗔 𝗞𝗢 𝗟𝗨𝗡𝗗 𝗣𝗘𝗥 𝗕𝗔𝗜𝗧𝗛𝗔 𝗞𝗔𝗥 𝗖𝗛𝗢𝗗𝗨𝗚𝗔 '
+    tail = '𒈙𒈙𒈙𒈙' + RAID4_TAILS[rot % len(RAID4_TAILS)]
+    return raid_fit_compose(head, RAID4_CHUNK, 2, tail)
 
 def raid_style5_subject(name, rot):
-    head = '➣𓂃✧° ꨄ︎ ִֶָ☾. ' + name + ' 𝐔sᴋᴇ 𝐓ᴀᴛᴛᴏ 𝐌ᴀʜᴏʀᴀɢᴀ 𝐏ᴀᴘᴀ 𝐊ᴀ 𝐋ᴜɴᴅ 𝐂ʜᴜs ༊࿐ ͎. ｡˚ ° '
-    tail = RAID_TOP_EMOJIS[rot % len(RAID_TOP_EMOJIS)]
-    return raid_fit_compose(head, '𒐫', 64, tail)
+    e = RAID_TOP_EMOJIS[rot % len(RAID_TOP_EMOJIS)]
+    head = f"➣𓂃✧° {name} 𝐌𝐀𝐇𝐎𝐑𝐀𝐆𝐀 𝐏ᴀᴘᴀ 𝐊ᴀ 𝐋ᴜɴᴅ 𝐂ʜᴜs ༊ {e}"
+    return raid_plain_fit(head, 0)
 
 def raid_style6_subject(text, mode, rot):
     e = RAID_TOP_EMOJIS[rot % len(RAID_TOP_EMOJIS)]
@@ -338,8 +452,6 @@ class Database:
         return self.c.fetchone() is not None
 
 db = Database()
-
-# ==================== LOGGING ====================
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -374,8 +486,11 @@ class Controller:
         self.prefix = db.get_setting("prefix", "/")
         self.attack_start_times = {}
         for owner in _K_LIST:
-            self.admins.add(int(owner))
-            db.save_admin(int(owner))
+            try:
+                self.admins.add(int(owner))
+                db.save_admin(int(owner))
+            except:
+                pass
 
     def is_admin(self, user_id):
         return user_id in self.admins or user_id == self.master
@@ -387,11 +502,16 @@ class Controller:
 
     def stop_chat(self, chat_id):
         if chat_id in self.attacks:
-            for task_id, task in self.attacks[chat_id].items():
-                self.stop_flags.setdefault(chat_id, {})[task_id] = True
-                task.cancel()
-            del self.attacks[chat_id]
+            if chat_id not in self.stop_flags:
+                self.stop_flags[chat_id] = {}
+            for task_id, task in list(self.attacks[chat_id].items()):
+                self.stop_flags[chat_id][task_id] = True
+                if not task.done():
+                    task.cancel()
+            self.attacks[chat_id] = {}
         if chat_id in self.stop_flags:
+            for k in self.stop_flags[chat_id]:
+                self.stop_flags[chat_id][k] = True
             del self.stop_flags[chat_id]
         if chat_id in self.attack_start_times:
             del self.attack_start_times[chat_id]
@@ -405,56 +525,52 @@ class Controller:
             self.attack_start_times[chat_id] = {}
         self.attack_start_times[chat_id][task_id] = time.time()
 
+    def get_active_durations(self):
+        now = time.time()
+        res = {}
+        active_db = db.get_active()
+        active_chat_ids = {row[0] for row in active_db}
+        for cid, tasks in list(self.attack_start_times.items()):
+            if cid in active_chat_ids:
+                for tid, st in tasks.items():
+                    res[tid] = {'chat_id': cid, 'duration': now - st}
+        return res
+
 controller = Controller()
 
-# ==================== ATTACK LOOPS ====================
-async def nc_loop(bot, chat_id, target, task_id, bot_index, total_bots,
-                  emojis=None, position="both", bnc=False):
+# ==================== ROTATIONAL ENGINE LOOPS ====================
+async def nc_loop(bot, chat_id, target, task_id, bot_index, total_bots, emojis=None, position="both"):
     last_item = None
-    db.save_active(chat_id, target, "bnc" if bnc else "nc")
+    db.save_active(chat_id, target, "nc")
     controller.record_start(chat_id, task_id)
     try:
         while True:
             if controller.should_stop(chat_id, task_id):
                 break
-            if bnc:
-                await asyncio.sleep(random.uniform(0.01, 0.05))
-            else:
-                await asyncio.sleep(bot_index * 0.4)
+            await asyncio.sleep(bot_index * 0.4)
             item = random.choice([e for e in emojis if e != last_item]) if emojis else random.choice(DEFAULT_NC_EMOJIS)
             last_item = item
-            if bnc:
-                msg = f"×{item}× {target} ×{item}×"
+            
+            if position == "suffix":
+                msg = f"{target} {item}"
+            elif position == "prefix":
+                msg = f"{item} {target}"
             else:
-                if position == "both":
-                    msg = f"{item} {target} {item}"
-                elif position == "suffix":
-                    msg = f"{target} {item}"
-                elif position == "prefix":
-                    msg = f"{item} {target}"
-                else:
-                    msg = f"{item} {target} {item}"
+                msg = f"{item} {target} {item}"
+                
             try:
                 await bot.set_chat_title(chat_id=chat_id, title=msg[:255])
-                logger.info(f"✨ Bot title updated: {msg[:30]}...")
             except RetryAfter as e:
-                wait = e.retry_after + random.uniform(1, 3)
-                logger.warning(f"FloodWait on Bot: sleeping {wait:.2f}s")
-                await asyncio.sleep(wait)
+                await asyncio.sleep(e.retry_after + random.uniform(1, 3))
             except Exception as e:
                 if "flood" in str(e).lower() or "too many requests" in str(e).lower():
                     await asyncio.sleep(10)
-                else:
-                    pass
-            if not bnc:
-                await asyncio.sleep(max(controller.speed, 2.0))
+            await asyncio.sleep(max(controller.speed, 2.0))
     except asyncio.CancelledError:
         pass
-    finally:
-        db.remove_active(chat_id)
 
 async def spam_loop(bot, chat_id, target, task_id, bot_index, templates=None):
-    patterns = templates or DEFAULT_SPAM_TEMPLATES
+    patterns = templates or ALL_SPAM_TEMPLATES
     db.save_active(chat_id, target, "spam")
     controller.record_start(chat_id, task_id)
     i = 0
@@ -474,21 +590,24 @@ async def spam_loop(bot, chat_id, target, task_id, bot_index, templates=None):
             await asyncio.sleep(controller.speed)
     except asyncio.CancelledError:
         pass
-    finally:
-        db.remove_active(chat_id)
 
-async def slide_loop(bot, chat_id, reply_to_msg_id, text=None, task_id=None):
-    """
-    If text is None, pick a random text from SLIDE_TEXTS on each iteration.
-    This ensures each bot sends different random texts.
-    """
+async def slide_loop(bot, chat_id, reply_to_msg_id, text=None, task_id=None, bot_index=0):
     db.save_active(chat_id, f"reply:{reply_to_msg_id}", "slide")
     controller.record_start(chat_id, task_id)
+    last_text = None
     try:
         while True:
             if controller.should_stop(chat_id, task_id):
                 break
-            slide_text = text if text else random.choice(SLIDE_TEXTS) if SLIDE_TEXTS else "Default slide text"
+            await asyncio.sleep(bot_index * 0.15)
+            
+            if text:
+                slide_text = text
+            else:
+                choices = [t for t in SLIDE_TEXTS if t != last_text]
+                slide_text = random.choice(choices) if choices else random.choice(SLIDE_TEXTS)
+                last_text = slide_text
+                
             try:
                 await bot.send_message(chat_id=chat_id, text=slide_text, reply_to_message_id=reply_to_msg_id)
             except RetryAfter as e:
@@ -498,45 +617,82 @@ async def slide_loop(bot, chat_id, reply_to_msg_id, text=None, task_id=None):
             await asyncio.sleep(controller.speed)
     except asyncio.CancelledError:
         pass
-    finally:
-        db.remove_active(chat_id)
 
 # ==================== COMMAND HANDLERS ====================
 async def start_cmd(update, context, args):
-    menu = (
-        to_fancy(" 🫍**𝐌ᴀʜᴏʀᴀɢᴀ 𝐂ᴏᴍᴍᴀɴᴅ 𝐂ᴇɴᴛʀᴇ **\n\n") +
-        to_fancy(f"Prefix: {controller.prefix}\n") +
-        to_fancy(f"Bots Active: {len(controller.bots)}/11\n\n") +
-        to_fancy("📌🫍 **Commands:**\n\n") +
-        to_fancy(f"`{controller.prefix}nc <target> [style] [mode]` - Name Changer\n") +
-        to_fancy(f"`{controller.prefix}bnc <target>` - Block NC (25 threads)\n") +
-        to_fancy(f"`{controller.prefix}spam <target>` - Spam with default templates\n") +
-        to_fancy(f"`{controller.prefix}tspam <target> [style]` - Template Spam\n") +
-        to_fancy(f"`{controller.prefix}raid <style> <target> [mode]` - RAID Name Changer\n") +
-        to_fancy(f"`{controller.prefix}sync <target> <mode>` - Symbolic NC\n") +
-        to_fancy(f"`{controller.prefix}slide [custom text]` - Reply spam (random texts)\n") +
-        to_fancy(f"`{controller.prefix}attack <target>` - Combined NC (raid5) + Spam\n") +
-        to_fancy(f"`{controller.prefix}ping` - Check latency\n") +
-        to_fancy(f"`{controller.prefix}status` - Active operations\n") +
-        to_fancy(f"`{controller.prefix}pre <symbol>` - Change prefix\n") +
-        to_fancy(f"`{controller.prefix}add <id/username>` - Add admin\n") +
-        to_fancy(f"`{controller.prefix}rm <id/username>` - Remove admin\n") +
-        to_fancy(f"`{controller.prefix}stop` - Halt current chat\n") +
-        to_fancy(f"`{controller.prefix}stopall` - Halt all\n") +
-        to_fancy(f"`{controller.prefix}speed <sec>` - Adjust delay\n") +
-        to_fancy(f"`{controller.prefix}dadd <group_id>` - Add all bots to group & promote\n") +
-        to_fancy(f"`{controller.prefix}leave <group_id>` - Make all bots leave group\n") +
-        to_fancy(f"`{controller.prefix}promote <user_id>` - Promote user\n") +
-        to_fancy(f"`{controller.prefix}demote <user_id>` - Demote user\n") +
-        to_fancy(f"`{controller.prefix}mute <user_id>` - Mute user & delete messages\n") +
-        to_fancy(f"`{controller.prefix}unmute <user_id>` - Unmute user\n")
-    )
-    await update.message.reply_text(menu, parse_mode="Markdown")
+    lines = [
+        f"⚡ 𝐏ʀᴇғɪx: {to_fancy(controller.prefix)}",
+        f"🤖 𝐅ʟᴇᴇᴛ: {to_fancy(len(controller.bots))}/{to_fancy(len(TOKENS))} Online",
+        f"⚡ 𝐄ɴɢɪɴᴇ: {to_fancy(controller.speed)}s Delay",
+        f"🛡️ 𝐒ᴛᴀᴛᴜs: Active 🟢",
+        f"📌 𝐂ᴍᴅs: nc, spam, tspam, raid, sync, slide, attack, status, ping, speed, stop, stopall, dadd, leave"
+    ]
+    await update.message.reply_text(make_card("DEV Control Center", lines))
 
-# --- Existing command handlers unchanged except slide_cmd updated ---
+async def ping_cmd(update, context, args):
+    start = time.time()
+    sent = await update.message.reply_text("...")
+    latency = (time.time() - start) * 1000
+    
+    current_mem, peak_mem = tracemalloc.get_traced_memory()
+    mem_mb = round(peak_mem / (1024 * 1024), 2)
+    uptime = format_uptime(time.time() - BOT_START_TIME)
+
+    lines = [
+        f"⚡ Latency: {to_fancy(int(latency))} ms",
+        f"🐉 Engine: DINO X PRIME",
+        f"🛰️ Node: Stable 🟢",
+        f"⏱️ Uptime: {to_fancy(uptime)}",
+        f"🤖 Fleet: {to_fancy(len(controller.bots))} active / {to_fancy(len(TOKENS))} online",
+        f"💻 System: {to_fancy(mem_mb)} MB"
+    ]
+    await sent.edit_text(make_card("Ping Stats", lines))
+
+async def status_cmd(update, context, args):
+    durations = controller.get_active_durations()
+    if not durations:
+        lines = [
+            f"📋 Status: Idle",
+            f"🔥 Active Operations: {to_fancy(0)}",
+            f"🤖 Fleet Ready: {to_fancy(len(controller.bots))} Units",
+            f"⚡ Engine: Standing by"
+        ]
+        await update.message.reply_text(make_card("Cluster Status", lines))
+        return
+
+    lines = []
+    seen_chats = set()
+    for task_id, info in durations.items():
+        cid = info['chat_id']
+        if cid not in seen_chats:
+            seen_chats.add(cid)
+            lines.append(f"🎯 Target Chat: {to_fancy(cid)}")
+            lines.append(f"⏱️ Runtime: {to_fancy(int(info['duration']))}s")
+
+    lines.append(f"🤖 Fleet Units: {to_fancy(len(controller.bots))} Deployed")
+    lines.append(f"⚡ State: Running Operations 🟢")
+    await update.message.reply_text(make_card("Cluster Status", lines))
+
+async def stats_cmd(update, context, args):
+    active = db.get_active()
+    current_mem, peak_mem = tracemalloc.get_traced_memory()
+    mem_mb = round(peak_mem / (1024 * 1024), 2)
+    uptime = format_uptime(time.time() - BOT_START_TIME)
+
+    lines = [
+        f"🤖 Active Fleet: {to_fancy(len(controller.bots))}/{to_fancy(len(TOKENS))}",
+        f"⚡ Delay Setting: {to_fancy(controller.speed)}s",
+        f"🔥 Live Operations: {to_fancy(len(active))}",
+        f"⏱️ Total Uptime: {to_fancy(uptime)}",
+        f"💻 Memory Heap: {to_fancy(mem_mb)} MB",
+        f"🛰️ Cluster Health: 100% 🟢"
+    ]
+    await update.message.reply_text(make_card("Cluster Metrics", lines))
+
 async def nc_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}nc <target> [style] [mode]"))
+        lines = [f"💡 Usage: {controller.prefix}nc <target> [style] [mode]"]
+        await update.message.reply_text(make_card("NC Guide", lines))
         return
     target_parts = []
     style = None
@@ -548,45 +704,33 @@ async def nc_cmd(update, context, args):
             mode = int(arg)
         else:
             target_parts.append(arg)
-    target = ' '.join(target_parts).strip()
-    if not target:
-        target = ' '.join(args)
-        style = None
-        mode = None
+    target = ' '.join(target_parts).strip() or ' '.join(args)
     emojis = NC_STYLE_EMOJIS.get(style) if style else DEFAULT_NC_EMOJIS
     position = "both" if mode is None else ("suffix" if mode == 1 else "both")
     chat_id = update.effective_chat.id
-    controller.stop_chat(chat_id)
-    controller.attacks[chat_id] = {}
-    controller.stop_flags[chat_id] = {}
-    for idx, bot_info in enumerate(controller.bots):
-        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}"
-        controller.stop_flags[chat_id][task_id] = False
-        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, len(controller.bots), emojis, position))
-        controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ NC Attack Deployed: `{target}`"), parse_mode="Markdown")
-
-async def bnc_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}bnc <target>"))
-        return
-    target = ' '.join(args)
-    chat_id = update.effective_chat.id
+    
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
     total_bots = len(controller.bots)
     for idx, bot_info in enumerate(controller.bots):
-        for thread in range(25):
-            task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_{thread}"
-            controller.stop_flags[chat_id][task_id] = False
-            task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, BNC_EMOJIS, "both", bnc=True))
-            controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ BNC Attack Deployed: `{target}` (25 threads/bot)"), parse_mode="Markdown")
+        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_nc"
+        controller.stop_flags[chat_id][task_id] = False
+        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, emojis, position))
+        controller.attacks[chat_id][task_id] = task
+
+    lines = [
+        f"🎯 Target Title: {to_fancy(target)}",
+        f"🎨 Emoji Style: {to_fancy(style if style else 'Default')}",
+        f"🤖 Bots Deployed: {to_fancy(total_bots)}",
+        f"⚡ Engine Speed: Anti-Flood Linked"
+    ]
+    await update.message.reply_text(make_card("NC Deployed", lines))
 
 async def spam_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}spam <target>"))
+        lines = [f"💡 Usage: {controller.prefix}spam <target>"]
+        await update.message.reply_text(make_card("Spam Guide", lines))
         return
     target = ' '.join(args)
     chat_id = update.effective_chat.id
@@ -594,15 +738,23 @@ async def spam_cmd(update, context, args):
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
     for idx, bot_info in enumerate(controller.bots):
-        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}"
+        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_spam"
         controller.stop_flags[chat_id][task_id] = False
         task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, idx, ALL_SPAM_TEMPLATES))
         controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ Spam Cluster Started: `{target}`"), parse_mode="Markdown")
+
+    lines = [
+        f"🎯 Target Locked: {to_fancy(target)}",
+        f"🤖 Fleet Load: {to_fancy(len(controller.bots))} Bots",
+        f"⚡ Rate Limit: Adaptive Safe",
+        f"💥 Mode: Continuous Multi-Line"
+    ]
+    await update.message.reply_text(make_card("Spam Cluster Live", lines))
 
 async def tspam_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}tspam <target> [style]"))
+        lines = [f"💡 Usage: {controller.prefix}tspam <target> [style]"]
+        await update.message.reply_text(make_card("TSPAM Guide", lines))
         return
     style = 1
     target_parts = []
@@ -611,25 +763,30 @@ async def tspam_cmd(update, context, args):
             style = int(arg)
         else:
             target_parts.append(arg)
-    target = ' '.join(target_parts).strip()
-    if not target:
-        target = ' '.join(args)
-        style = 1
+    target = ' '.join(target_parts).strip() or ' '.join(args)
     templates = TSPAM_STYLE_TEMPLATES.get(style, ALL_SPAM_TEMPLATES)
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
     for idx, bot_info in enumerate(controller.bots):
-        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}"
+        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_tspam"
         controller.stop_flags[chat_id][task_id] = False
         task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, idx, templates))
         controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ TSPAM (Style {style}) Started: `{target}`"), parse_mode="Markdown")
+
+    lines = [
+        f"🎯 Target Locked: {to_fancy(target)}",
+        f"🎭 Template Style: {to_fancy(style)}",
+        f"🤖 Bots Deployed: {to_fancy(len(controller.bots))}",
+        f"⚡ Engine: Rotational Multi-Stream"
+    ]
+    await update.message.reply_text(make_card("TSPAM Started", lines))
 
 async def raid_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}raid <style> <target> [mode]"))
+        lines = [f"💡 Usage: {controller.prefix}raid <style> <target> [mode]"]
+        await update.message.reply_text(make_card("RAID Guide", lines))
         return
     style = 1
     mode = '1'
@@ -637,23 +794,29 @@ async def raid_cmd(update, context, args):
         style = int(args[0])
         args = args[1:]
     if not args:
-        await update.message.reply_text(to_fancy("❌ Target do."))
+        lines = ["❌ Target text required"]
+        await update.message.reply_text(make_card("RAID Error", lines))
         return
     if style == 6 and len(args) >= 2 and args[-1] in ('1','2'):
         mode = args[-1]
         target = ' '.join(args[:-1])
     else:
         target = ' '.join(args)
+        
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+
     for idx, bot_info in enumerate(controller.bots):
-        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}"
+        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_raid"
         controller.stop_flags[chat_id][task_id] = False
         async def raid_task(bot=bot_info['bot'], tid=task_id, bidx=idx):
             rot = bidx
+            db.save_active(chat_id, target, "raid")
+            controller.record_start(chat_id, tid)
             while not controller.should_stop(chat_id, tid):
+                await asyncio.sleep(bidx * 0.4)
                 if style == 1:
                     subject = raid_style1_subject(target, rot)
                 elif style == 2:
@@ -669,43 +832,57 @@ async def raid_cmd(update, context, args):
                 try:
                     await bot.set_chat_title(chat_id, subject[:255])
                 except RetryAfter as e:
-                    await asyncio.sleep(e.retry_after)
+                    await asyncio.sleep(e.retry_after + random.uniform(1, 3))
                 except Exception:
                     pass
                 rot += 1
                 await asyncio.sleep(max(controller.speed, 2.0))
         task = asyncio.create_task(raid_task())
         controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ RAID Style {style} launched on `{target}`"), parse_mode="Markdown")
+
+    lines = [
+        f"🎯 Target Locked: {to_fancy(target)}",
+        f"⚔️ Raid Style: {to_fancy(style)}",
+        f"🤖 Fleet Allocation: {to_fancy(len(controller.bots))} Units",
+        f"🛡️ Protection: Anti-Flood Delays Active"
+    ]
+    await update.message.reply_text(make_card("RAID Launched", lines))
 
 async def sync_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}sync <target> <mode>"))
+        lines = [f"💡 Usage: {controller.prefix}sync <target> <mode>"]
+        await update.message.reply_text(make_card("Sync Guide", lines))
         return
     target = args[0]
-    if len(args) < 2:
-        await update.message.reply_text(to_fancy("❌ Mode (1=both, 2=suffix) do."))
+    if len(args) < 2 or args[1] not in ('1','2'):
+        lines = ["❌ Mode must be 1 (both) or 2 (suffix)"]
+        await update.message.reply_text(make_card("Sync Error", lines))
         return
     mode = args[1]
-    if mode not in ('1','2'):
-        await update.message.reply_text(to_fancy("❌ Mode 1 ya 2 hona chahiye."))
-        return
     position = "both" if mode == '1' else "suffix"
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
     for idx, bot_info in enumerate(controller.bots):
-        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}"
+        task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_sync"
         controller.stop_flags[chat_id][task_id] = False
-        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, len(controller.bots), SYNC_SYMBOLS, position))
+        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, SYNC_SYMBOLS, position))
         controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ Symbolic NC Started: `{target}` (Mode {mode})"), parse_mode="Markdown")
+
+    lines = [
+        f"🎯 Target: {to_fancy(target)}",
+        f"🔮 Mode: {to_fancy(mode)}",
+        f"🤖 Fleet Units: {to_fancy(total_bots)}"
+    ]
+    await update.message.reply_text(make_card("Symbolic NC Live", lines))
 
 async def slide_cmd(update, context, args):
     reply_msg = update.message.reply_to_message
     if not reply_msg:
-        await update.message.reply_text(to_fancy("❌ Reply to a message to use slide."))
+        lines = ["❌ Reply to a message to initiate slide attack"]
+        await update.message.reply_text(make_card("Slide Error", lines))
         return
     custom_text = ' '.join(args) if args else None
     chat_id = update.effective_chat.id
@@ -717,15 +894,21 @@ async def slide_cmd(update, context, args):
         bot = bot_info['bot']
         task_id = f"{bot.id}_{int(time.time())}_{idx}_slide"
         controller.stop_flags[chat_id][task_id] = False
-        # Pass custom_text; if None, slide_loop will pick random each iteration
-        task = asyncio.create_task(slide_loop(bot, chat_id, reply_to_id, custom_text, task_id))
+        task = asyncio.create_task(slide_loop(bot, chat_id, reply_to_id, custom_text, task_id, idx))
         controller.attacks[chat_id][task_id] = task
-    await update.message.reply_text(to_fancy(f"✅ Slide started on message ID {reply_to_id}"))
 
-# ==================== ATTACK COMMAND (NEW) ====================
+    lines = [
+        f"🎯 Target Message: {to_fancy(reply_to_id)}",
+        f"🎲 Text Pool: Random Dynamic",
+        f"🤖 Fleet: {to_fancy(len(controller.bots))} Bots Firing",
+        f"⚡ Delay: Engine Linked"
+    ]
+    await update.message.reply_text(make_card("Slide Initiated", lines))
+
 async def attack_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}attack <target>"))
+        lines = [f"💡 Usage: {controller.prefix}attack <target>"]
+        await update.message.reply_text(make_card("Attack Guide", lines))
         return
     target = ' '.join(args)
     chat_id = update.effective_chat.id
@@ -733,99 +916,136 @@ async def attack_cmd(update, context, args):
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
     total_bots = len(controller.bots)
+    
     for idx, bot_info in enumerate(controller.bots):
-        # NC task with raid style 5
+        # Dedicated Attack NC Pattern
         nc_task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_nc"
         controller.stop_flags[chat_id][nc_task_id] = False
-        nc_task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, nc_task_id, idx, total_bots,
-                                             emojis=None, position="both", bnc=False))
-        controller.attacks[chat_id][nc_task_id] = nc_task
+        
+        async def attack_nc_task(bot=bot_info['bot'], tid=nc_task_id, bidx=idx):
+            rot = bidx
+            db.save_active(chat_id, target, "attack_nc")
+            controller.record_start(chat_id, tid)
+            while not controller.should_stop(chat_id, tid):
+                await asyncio.sleep(bidx * 0.4)
+                pattern = ATTACK_NC_PATTERNS[rot % len(ATTACK_NC_PATTERNS)]
+                title = pattern.replace("{target}", target)
+                try:
+                    await bot.set_chat_title(chat_id=chat_id, title=title[:255])
+                except RetryAfter as e:
+                    await asyncio.sleep(e.retry_after + random.uniform(1, 3))
+                except Exception:
+                    pass
+                rot += 1
+                await asyncio.sleep(max(controller.speed, 2.0))
+                
+        task_nc = asyncio.create_task(attack_nc_task())
+        controller.attacks[chat_id][nc_task_id] = task_nc
 
-        # Spam task with ALL_SPAM_TEMPLATES
+        # TSPAM Pattern
         spam_task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_spam"
         controller.stop_flags[chat_id][spam_task_id] = False
-        spam_task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, spam_task_id, idx, ALL_SPAM_TEMPLATES))
-        controller.attacks[chat_id][spam_task_id] = spam_task
+        task_spam = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, spam_task_id, idx, ALL_SPAM_TEMPLATES))
+        controller.attacks[chat_id][spam_task_id] = task_spam
 
-    await update.message.reply_text(to_fancy(f"✅ Combined Attack started on `{target}` (NC + Spam)"), parse_mode="Markdown")
+    lines = [
+        f"🎯 Target: {to_fancy(target)}",
+        f"⚡ Mode: Dedicated NC + Spam",
+        f"🤖 Combined Load: {to_fancy(total_bots * 2)} Active Tasks",
+        f"🛡️ Safety: Anti-Flood Linked"
+    ]
+    await update.message.reply_text(make_card("Combined Assault", lines))
 
-# ==================== GROUP MANAGEMENT COMMANDS (NEW) ====================
+# ==================== GROUP MANAGEMENT ====================
 async def dadd_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy("💡 Usage: dadd <group_id>"))
-        return
-    group_id = args[0]
-    try:
-        group_id = int(group_id)
-    except:
-        await update.message.reply_text(to_fancy("❌ Group ID numeric hona chahiye."))
-        return
-    success = 0
-    for bot_info in controller.bots:
-        bot = bot_info['bot']
+    group_id = int(args[0]) if args and args[0].lstrip('-').isdigit() else update.effective_chat.id
+    
+    admin_bot = None
+    for b in controller.bots:
         try:
-            await bot.add_chat_member(chat_id=group_id, user_id=bot.id)
-            try:
-                await bot.promote_chat_member(
-                    chat_id=group_id,
-                    user_id=bot.id,
-                    can_change_info=True,
-                    can_post_messages=True,
-                    can_edit_messages=True,
-                    can_delete_messages=True,
-                    can_invite_users=True,
-                    can_restrict_members=True,
-                    can_pin_messages=True,
-                    can_promote_members=True,
-                    can_manage_video_chats=True,
-                    can_manage_topics=True
-                )
-                success += 1
-            except:
-                pass
-        except Exception as e:
-            logger.warning(f"Failed to add bot {bot_info['username']}: {e}")
-    await update.message.reply_text(to_fancy(f"✅ Added {success}/{len(controller.bots)} bots to group and tried promoting."))
+            m = await b['bot'].get_chat_member(chat_id=group_id, user_id=b['id'])
+            if m.status in ['administrator', 'creator']:
+                if m.status == 'creator' or getattr(m, 'can_promote_members', False):
+                    admin_bot = b['bot']
+                    break
+        except Exception:
+            continue
+
+    if not admin_bot:
+        lines = [
+            "❌ No bot has promote permissions",
+            "💡 Manually promote 1 bot with admin rights first"
+        ]
+        await update.message.reply_text(make_card("DADD Failed", lines))
+        return
+
+    success_promote = 0
+    not_in_group = 0
+    for bot_info in controller.bots:
+        target_bot_id = bot_info['id']
+        try:
+            member_check = await admin_bot.get_chat_member(chat_id=group_id, user_id=target_bot_id)
+            if member_check.status in ['left', 'kicked']:
+                not_in_group += 1
+                continue
+
+            await admin_bot.promote_chat_member(
+                chat_id=group_id,
+                user_id=target_bot_id,
+                is_anonymous=False,
+                can_manage_chat=True,
+                can_change_info=True,
+                can_post_messages=True,
+                can_edit_messages=True,
+                can_delete_messages=True,
+                can_invite_users=True,
+                can_restrict_members=True,
+                can_pin_messages=True,
+                can_promote_members=True,
+                can_manage_video_chats=True,
+                can_manage_topics=True
+            )
+            success_promote += 1
+        except Exception:
+            pass
+
+    lines = [
+        f"🎯 Target GC: {to_fancy(group_id)}",
+        f"👑 Promoted: {to_fancy(success_promote)}/{to_fancy(len(controller.bots))} bots",
+        f"⚠️ Not In Group: {to_fancy(not_in_group)} bots"
+    ]
+    await update.message.reply_text(make_card("DADD Complete", lines))
 
 async def leave_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy("💡 Usage: leave <group_id>"))
-        return
-    group_id = args[0]
-    try:
-        group_id = int(group_id)
-    except:
-        await update.message.reply_text(to_fancy("❌ Group ID numeric hona chahiye."))
-        return
+    group_id = int(args[0]) if args and args[0].lstrip('-').isdigit() else update.effective_chat.id
     success = 0
     for bot_info in controller.bots:
-        bot = bot_info['bot']
         try:
-            await bot.leave_chat(group_id)
+            await bot_info['bot'].leave_chat(group_id)
             success += 1
-        except Exception as e:
-            logger.warning(f"Failed to leave group for bot {bot_info['username']}: {e}")
-    await update.message.reply_text(to_fancy(f"✅ {success}/{len(controller.bots)} bots left the group."))
+        except Exception:
+            pass
+    lines = [
+        f"🎯 Target GC: {to_fancy(group_id)}",
+        f"🤖 Departed: {to_fancy(success)}/{to_fancy(len(controller.bots))} bots"
+    ]
+    await update.message.reply_text(make_card("Fleet Evacuation", lines))
 
 async def promote_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy("💡 Usage: promote <user_id> (reply to user or provide ID)"))
-        return
-    user_id = args[0]
-    if not user_id.isdigit():
-        reply = update.message.reply_to_message
-        if reply:
-            user_id = reply.from_user.id
-        else:
-            await update.message.reply_text(to_fancy("❌ User ID do ya reply karo."))
-            return
+    user_id = None
+    if args and args[0].isdigit():
+        user_id = int(args[0])
+    elif update.message.reply_to_message:
+        user_id = update.message.reply_to_message.from_user.id
     else:
-        user_id = int(user_id)
+        lines = ["💡 Usage: promote <user_id> ya user ko reply karo"]
+        await update.message.reply_text(make_card("Promote Info", lines))
+        return
+
     chat_id = update.effective_chat.id
     for bot_info in controller.bots:
-        bot = bot_info['bot']
         try:
-            await bot.promote_chat_member(
+            await bot_info['bot'].promote_chat_member(
                 chat_id=chat_id,
                 user_id=user_id,
                 can_change_info=True,
@@ -841,27 +1061,24 @@ async def promote_cmd(update, context, args):
             )
         except:
             pass
-    await update.message.reply_text(to_fancy("✅ Promotion attempts done."))
+    lines = [f"👤 User: {to_fancy(user_id)}", "👑 Promoted in current chat"]
+    await update.message.reply_text(make_card("Promotion Executed", lines))
 
 async def demote_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy("💡 Usage: demote <user_id>"))
-        return
-    user_id = args[0]
-    if not user_id.isdigit():
-        reply = update.message.reply_to_message
-        if reply:
-            user_id = reply.from_user.id
-        else:
-            await update.message.reply_text(to_fancy("❌ User ID do ya reply karo."))
-            return
+    user_id = None
+    if args and args[0].isdigit():
+        user_id = int(args[0])
+    elif update.message.reply_to_message:
+        user_id = update.message.reply_to_message.from_user.id
     else:
-        user_id = int(user_id)
+        lines = ["💡 Usage: demote <user_id> ya user ko reply karo"]
+        await update.message.reply_text(make_card("Demote Info", lines))
+        return
+
     chat_id = update.effective_chat.id
     for bot_info in controller.bots:
-        bot = bot_info['bot']
         try:
-            await bot.promote_chat_member(
+            await bot_info['bot'].promote_chat_member(
                 chat_id=chat_id,
                 user_id=user_id,
                 can_change_info=False,
@@ -877,22 +1094,20 @@ async def demote_cmd(update, context, args):
             )
         except:
             pass
-    await update.message.reply_text(to_fancy("✅ Demotion attempts done."))
+    lines = [f"👤 User: {to_fancy(user_id)}", "🚫 Demoted in current chat"]
+    await update.message.reply_text(make_card("Demotion Executed", lines))
 
 async def mute_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy("💡 Usage: mute <user_id>"))
-        return
-    user_id = args[0]
-    if not user_id.isdigit():
-        reply = update.message.reply_to_message
-        if reply:
-            user_id = reply.from_user.id
-        else:
-            await update.message.reply_text(to_fancy("❌ User ID do ya reply karo."))
-            return
+    user_id = None
+    if args and args[0].isdigit():
+        user_id = int(args[0])
+    elif update.message.reply_to_message:
+        user_id = update.message.reply_to_message.from_user.id
     else:
-        user_id = int(user_id)
+        lines = ["💡 Usage: mute <user_id> ya user ko reply karo"]
+        await update.message.reply_text(make_card("Mute Info", lines))
+        return
+
     chat_id = update.effective_chat.id
     db.add_muted(chat_id, user_id)
     permissions = ChatPermissions(
@@ -906,27 +1121,24 @@ async def mute_cmd(update, context, args):
         can_pin_messages=False
     )
     for bot_info in controller.bots:
-        bot = bot_info['bot']
         try:
-            await bot.restrict_chat_member(chat_id, user_id, permissions)
+            await bot_info['bot'].restrict_chat_member(chat_id, user_id, permissions)
         except:
             pass
-    await update.message.reply_text(to_fancy("✅ User muted. Bots will delete their future messages."))
+    lines = [f"👤 User: {to_fancy(user_id)}", "🔇 Muted in current chat"]
+    await update.message.reply_text(make_card("Mute Executed", lines))
 
 async def unmute_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy("💡 Usage: unmute <user_id>"))
-        return
-    user_id = args[0]
-    if not user_id.isdigit():
-        reply = update.message.reply_to_message
-        if reply:
-            user_id = reply.from_user.id
-        else:
-            await update.message.reply_text(to_fancy("❌ User ID do ya reply karo."))
-            return
+    user_id = None
+    if args and args[0].isdigit():
+        user_id = int(args[0])
+    elif update.message.reply_to_message:
+        user_id = update.message.reply_to_message.from_user.id
     else:
-        user_id = int(user_id)
+        lines = ["💡 Usage: unmute <user_id> ya user ko reply karo"]
+        await update.message.reply_text(make_card("Unmute Info", lines))
+        return
+
     chat_id = update.effective_chat.id
     db.remove_muted(chat_id, user_id)
     permissions = ChatPermissions(
@@ -940,129 +1152,133 @@ async def unmute_cmd(update, context, args):
         can_pin_messages=True
     )
     for bot_info in controller.bots:
-        bot = bot_info['bot']
         try:
-            await bot.restrict_chat_member(chat_id, user_id, permissions)
+            await bot_info['bot'].restrict_chat_member(chat_id, user_id, permissions)
         except:
             pass
-    await update.message.reply_text(to_fancy("✅ User unmuted."))
-
-# ==================== OTHER COMMANDS (UNCHANGED) ====================
-async def ping_cmd(update, context, args):
-    start = time.time()
-    sent = await update.message.reply_text(to_fancy("🏓 Pong!"))
-    latency = (time.time() - start) * 1000
-    await sent.edit_text(to_fancy(f"🏓 Pong! Latency: {latency:.2f} ms"))
-
-async def status_cmd(update, context, args):
-    durations = controller.get_active_durations()
-    if not durations:
-        await update.message.reply_text(to_fancy("📋 No active operations."))
-        return
-    lines = [to_fancy("📋 **Active Operations:**")]
-    for task_id, info in durations.items():
-        lines.append(to_fancy(f"• Chat {info['chat_id']} | running for {int(info['duration'])}s"))
-    await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
-
-async def pre_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy(f"Current prefix: {controller.prefix}"))
-        return
-    new_prefix = args[0][0]
-    if new_prefix.isalnum():
-        await update.message.reply_text(to_fancy("❌ Prefix must be a symbol like / . ! # etc."))
-        return
-    controller.prefix = new_prefix
-    db.save_setting("prefix", new_prefix)
-    await update.message.reply_text(to_fancy(f"✅ Prefix changed to: {new_prefix}"))
-
-async def add_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}add <user_id or @username>"))
-        return
-    ident = args[0]
-    user_id = None
-    if ident.isdigit():
-        user_id = int(ident)
-    elif ident.startswith('@'):
-        try:
-            chat = await context.bot.get_chat(ident)
-            user_id = chat.id
-        except:
-            await update.message.reply_text(to_fancy("❌ Could not resolve username."))
-            return
-    else:
-        await update.message.reply_text(to_fancy("❌ Invalid user identifier."))
-        return
-    controller.admins.add(user_id)
-    db.save_admin(user_id)
-    await update.message.reply_text(to_fancy(f"✅ User {user_id} added as admin."))
-
-async def rm_cmd(update, context, args):
-    if not args:
-        await update.message.reply_text(to_fancy(f"💡 Usage: {controller.prefix}rm <user_id or @username>"))
-        return
-    ident = args[0]
-    user_id = None
-    if ident.isdigit():
-        user_id = int(ident)
-    elif ident.startswith('@'):
-        try:
-            chat = await context.bot.get_chat(ident)
-            user_id = chat.id
-        except:
-            await update.message.reply_text(to_fancy("❌ Could not resolve username."))
-            return
-    else:
-        await update.message.reply_text(to_fancy("❌ Invalid user identifier."))
-        return
-    if user_id in _K_LIST:
-        await update.message.reply_text(to_fancy("❌ Cannot remove owner."))
-        return
-    if user_id in controller.admins:
-        controller.admins.remove(user_id)
-        db.remove_admin(user_id)
-        await update.message.reply_text(to_fancy(f"✅ User {user_id} removed from admins."))
-    else:
-        await update.message.reply_text(to_fancy("❌ User is not an admin."))
+    lines = [f"👤 User: {to_fancy(user_id)}", "🔊 Unmuted in current chat"]
+    await update.message.reply_text(make_card("Unmute Executed", lines))
 
 async def stop_cmd(update, context, args):
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
-    await update.message.reply_text(to_fancy("🛑 Operations halted for this chat."))
+    lines = [
+        f"🎯 Chat: {to_fancy(chat_id)}",
+        f"🛑 Status: Halted",
+        f"🛡️ Tasks: Cleaned from memory"
+    ]
+    await update.message.reply_text(make_card("Operations Stopped", lines))
 
 async def stopall_cmd(update, context, args):
     controller.stop_all()
-    await update.message.reply_text(to_fancy("🛑 All background tasks terminated cluster-wide."))
+    lines = [
+        f"🛑 Scope: Cluster-Wide",
+        f"🛡️ Status: All tasks aborted",
+        f"⚡ Fleet: Idle"
+    ]
+    await update.message.reply_text(make_card("Cluster Terminated", lines))
 
 async def speed_cmd(update, context, args):
     if not args:
-        await update.message.reply_text(to_fancy(f"⚡ Current Engine Speed: {controller.speed}s"))
+        lines = [f"⚡ Current Speed: {to_fancy(controller.speed)}s"]
+        await update.message.reply_text(make_card("Engine Speed", lines))
         return
     try:
         speed = float(args[0])
         controller.speed = speed
         db.save_setting("speed", speed)
-        await update.message.reply_text(to_fancy(f"✅ Speed Updated: {speed}s"))
+        lines = [f"⚡ Updated Speed: {to_fancy(speed)}s"]
+        await update.message.reply_text(make_card("Engine Speed", lines))
     except:
-        await update.message.reply_text(to_fancy("❌ Invalid speed format."))
+        lines = ["❌ Invalid speed number"]
+        await update.message.reply_text(make_card("Speed Error", lines))
 
-async def stats_cmd(update, context, args):
-    active = db.get_active()
-    bots = len(controller.bots)
-    await update.message.reply_text(
-        to_fancy(f"📊 **Cluster Metrics:**\n") +
-        to_fancy(f"🤖 Active Bots: {bots}/11\n") +
-        to_fancy(f"⚡ Delay: {controller.speed}s\n") +
-        to_fancy(f"🔥 Active Operations: {len(active)}"),
-        parse_mode="Markdown"
-    )
+async def pre_cmd(update, context, args):
+    if not args:
+        lines = [f"Current Prefix: {to_fancy(controller.prefix)}"]
+        await update.message.reply_text(make_card("Prefix Info", lines))
+        return
+    new_prefix = args[0][0]
+    if new_prefix.isalnum():
+        lines = ["❌ Prefix must be a symbol like / . ! # etc."]
+        await update.message.reply_text(make_card("Prefix Error", lines))
+        return
+    controller.prefix = new_prefix
+    db.save_setting("prefix", new_prefix)
+    lines = [f"✅ Active Prefix: {to_fancy(new_prefix)}"]
+    await update.message.reply_text(make_card("Prefix Updated", lines))
 
-# ==================== COMMAND DISPATCHER ====================
+async def add_cmd(update, context, args):
+    user_id = None
+    if update.message.reply_to_message:
+        user_id = update.message.reply_to_message.from_user.id
+    elif args:
+        ident = args[0]
+        if ident.isdigit():
+            user_id = int(ident)
+        elif ident.startswith('@'):
+            for b in controller.bots:
+                try:
+                    c = await b['bot'].get_chat(ident)
+                    user_id = c.id
+                    break
+                except:
+                    continue
+    if not user_id:
+        lines = ["❌ Could not resolve user identifier"]
+        await update.message.reply_text(make_card("Admin Error", lines))
+        return
+
+    controller.admins.add(user_id)
+    db.save_admin(user_id)
+    lines = [
+        f"👤 User ID: {to_fancy(user_id)}",
+        f"👑 Status: Promoted to Admin",
+        f"🛡️ Access: Granted"
+    ]
+    await update.message.reply_text(make_card("Admin Added", lines))
+
+async def rm_cmd(update, context, args):
+    user_id = None
+    if update.message.reply_to_message:
+        user_id = update.message.reply_to_message.from_user.id
+    elif args:
+        ident = args[0]
+        if ident.isdigit():
+            user_id = int(ident)
+        elif ident.startswith('@'):
+            for b in controller.bots:
+                try:
+                    c = await b['bot'].get_chat(ident)
+                    user_id = c.id
+                    break
+                except:
+                    continue
+    if not user_id:
+        lines = ["❌ Could not resolve user identifier"]
+        await update.message.reply_text(make_card("Admin Error", lines))
+        return
+
+    if str(user_id) in _K_LIST or user_id in [int(x) for x in _K_LIST if x.isdigit()]:
+        lines = ["❌ Cannot revoke master owner privileges"]
+        await update.message.reply_text(make_card("Admin Error", lines))
+        return
+
+    if user_id in controller.admins:
+        controller.admins.remove(user_id)
+        db.remove_admin(user_id)
+        lines = [
+            f"👤 User ID: {to_fancy(user_id)}",
+            f"🚫 Status: Removed from Admin"
+        ]
+        await update.message.reply_text(make_card("Admin Revoked", lines))
+    else:
+        lines = ["❌ User is not present in admin database"]
+        await update.message.reply_text(make_card("Admin Error", lines))
+
 COMMANDS = {
     "start": start_cmd,
     "nc": nc_cmd,
-    "bnc": bnc_cmd,
     "spam": spam_cmd,
     "tspam": tspam_cmd,
     "raid": raid_cmd,
@@ -1071,13 +1287,13 @@ COMMANDS = {
     "attack": attack_cmd,
     "ping": ping_cmd,
     "status": status_cmd,
+    "stats": stats_cmd,
     "pre": pre_cmd,
     "add": add_cmd,
     "rm": rm_cmd,
     "stop": stop_cmd,
     "stopall": stopall_cmd,
     "speed": speed_cmd,
-    "stats": stats_cmd,
     "dadd": dadd_cmd,
     "leave": leave_cmd,
     "promote": promote_cmd,
@@ -1087,29 +1303,24 @@ COMMANDS = {
 }
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message:
+    if not update.message or not update.message.text:
         return
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
 
-    # If user is muted, try to delete their message (only for non-command messages)
-    if db.is_muted(chat_id, user_id) and update.message.text and not update.message.text.startswith(controller.prefix):
+    if db.is_muted(chat_id, user_id) and not update.message.text.startswith(controller.prefix):
         for bot_info in controller.bots:
-            bot = bot_info['bot']
             try:
-                await bot.delete_message(chat_id, update.message.message_id)
+                await bot_info['bot'].delete_message(chat_id, update.message.message_id)
                 break
             except:
                 continue
         return
 
-    if not update.message.text:
-        return
     text = update.message.text.strip()
-    prefix = controller.prefix
-    if not text.startswith(prefix):
+    if not text.startswith(controller.prefix):
         return
-    rest = text[len(prefix):].strip()
+    rest = text[len(controller.prefix):].strip()
     if not rest:
         return
     parts = rest.split()
@@ -1118,14 +1329,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if cmd not in COMMANDS:
         return
     if not controller.is_admin(user_id):
-        await update.message.reply_text(to_fancy("❌ Access Denied - Admin Rights Required"))
+        lines = ["❌ Access Denied - Admin Rights Required"]
+        await update.message.reply_text(make_card("Security Barrier", lines))
         return
     try:
         await COMMANDS[cmd](update, context, args)
     except Exception as e:
         logger.error(f"Error executing {cmd}: {e}")
-        traceback.print_exc()
-        await update.message.reply_text(to_fancy(f"❌ Error: {str(e)[:50]}"))
 
 # ==================== RESTORE ====================
 async def restore_attacks():
@@ -1133,18 +1343,19 @@ async def restore_attacks():
     if not active:
         return
     logger.info(f"🔄 Restoring {len(active)} operations...")
+    total_bots = len(controller.bots)
     for chat_id, target, attack_type in active:
         controller.attacks[chat_id] = {}
         controller.stop_flags[chat_id] = {}
         if attack_type == "nc":
             for idx, bot_info in enumerate(controller.bots):
-                task_id = f"{bot_info['id']}_restore_{int(time.time())}_{idx}"
+                task_id = f"{bot_info['id']}_restore_{int(time.time())}_{idx}_nc"
                 controller.stop_flags[chat_id][task_id] = False
-                task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, len(controller.bots), DEFAULT_NC_EMOJIS, "both"))
+                task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, DEFAULT_NC_EMOJIS, "both"))
                 controller.attacks[chat_id][task_id] = task
         elif attack_type == "spam":
             for idx, bot_info in enumerate(controller.bots):
-                task_id = f"{bot_info['id']}_restore_{int(time.time())}_{idx}"
+                task_id = f"{bot_info['id']}_restore_{int(time.time())}_{idx}_spam"
                 controller.stop_flags[chat_id][task_id] = False
                 task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, idx, ALL_SPAM_TEMPLATES))
                 controller.attacks[chat_id][task_id] = task
@@ -1152,7 +1363,7 @@ async def restore_attacks():
 # ==================== MAIN ====================
 async def main():
     print("=" * 60)
-    print(to_fancy("DEV Matrix Cluster - Booting"))
+    print(to_fancy("DEV Matrix Cluster - Online (V27)"))
     print("=" * 60)
 
     valid_tokens = [t.strip() for t in TOKENS if t.strip() and len(t) > 10]
@@ -1171,7 +1382,7 @@ async def main():
             print(to_fancy(f"❌ Bot #{idx+1} Failed: {str(e)[:30]}"))
 
     print("=" * 60)
-    print(to_fancy(f"🚀 Cluster Ready: {len(controller.bots)} / 11 Bots Operational"))
+    print(to_fancy(f"🚀 Cluster Ready: {len(controller.bots)} Bots Operational"))
     print(to_fancy(f"Prefix: {controller.prefix}"))
     print("=" * 60)
 
@@ -1179,7 +1390,6 @@ async def main():
     while True:
         await asyncio.sleep(60)
 
-# ==================== SIGNAL HANDLER ====================
 def signal_handler(sig, frame):
     print("\n🛑 Shutting down cluster gracefully...")
     controller.stop_all()
@@ -1197,4 +1407,3 @@ if __name__ == "__main__":
         controller.stop_all()
     except Exception as e:
         print(f"❌ Error: {e}")
-        traceback.print_exc()
