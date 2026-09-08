@@ -314,7 +314,7 @@ RAID3_LINES = [
     '{target} 𝐁𝐇𝐀𝐆𝐍𝐀 𝐍𝐘 𝐇 𝐆𝐀𝐑𝐈𝐁 𝐓𝐄𝐑𝐈 𝐌𝐀 𝐌𝐑𝐉𝐀𝐘𝐄𝐆𝐈 𝐕𝐑𝐍𝐀😤👻🩷',
     '{target} 𝐊𝐄 𝐆𝐀𝐑𝐈𝐁 𝐁𝐇𝐀𝐆 𝐊𝐀𝐈𝐒𝐄 𝐑𝐀𝐇𝐀 𝐇 𝐑𝐄𝐏𝐋𝐘 𝐊𝐑 𝐂𝐇𝐎𝐓𝐄𝐘 😂👻🩷',
     '{target} 𝐂𝐇𝐀𝐋 𝐓𝐄𝐑𝐈 𝐌𝐀 𝐗𝐇𝐎𝐃𝐔 𝐏𝐀𝐓𝐀𝐊 𝐏𝐀𝐓𝐀𝐊 𝐊𝐄🤣👻🩶'
-]
+    ]
 RAID4_TAILS = ['✘✘','✘𓆪','✘✘_','✘_','✘𓆪_']
 RAID4_CHUNK = '𒈙𒈙𒈙𒈙'
 
@@ -528,11 +528,14 @@ class Controller:
 
 controller = Controller()
 
-# ==================== ZERO DELAY + AUTO-FAILOVER ENGINE ====================
-async def nc_loop(bot, chat_id, target, task_id, emojis=None, position="both"):
+# ==================== MAX SPEED STAGGERED ANTI-FLOOD ENGINE ====================
+async def nc_loop(bot, chat_id, target, task_id, bot_index, total_bots, emojis=None, position="both"):
     last_item = None
-    backoff = 1.0
     db.save_active(chat_id, target, "nc")
+    
+    initial_delay = bot_index * 0.05
+    await asyncio.sleep(initial_delay)
+    
     try:
         while True:
             if controller.should_stop(chat_id, task_id): break
@@ -540,7 +543,7 @@ async def nc_loop(bot, chat_id, target, task_id, emojis=None, position="both"):
             if controller.rate_limit_hit:
                 current_group = 0 if bot.id in controller.bot_groups[0] else 1
                 if current_group != controller.active_group:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.1)
                     continue
 
             item = random.choice([e for e in emojis if e != last_item]) if emojis else random.choice(DEFAULT_NC_EMOJIS)
@@ -554,27 +557,28 @@ async def nc_loop(bot, chat_id, target, task_id, emojis=None, position="both"):
                 await bot.set_chat_title(chat_id=chat_id, title=msg[:255])
                 if controller.rate_limit_hit:
                     controller.rate_limit_hit = False
-                    backoff = 1.0
             except Exception as e:
                 err = str(e).lower()
                 if "flood" in err or "retry" in err or "too many" in err:
                     if not controller.rate_limit_hit:
                         controller.switch_bot_group()
-                        backoff = min(backoff * 2, 10.0)
-                        await asyncio.sleep(backoff)
+                    await asyncio.sleep(random.uniform(1.0, 2.5))
                 else:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.01)
             
-            if controller.speed > 0: await asyncio.sleep(controller.speed)
-            else: await asyncio.sleep(0)
+            slot_delay = 0.02 + (bot_index * 0.005)
+            await asyncio.sleep(slot_delay)
+            
     except asyncio.CancelledError: pass
     except Exception: pass
 
-async def spam_loop(bot, chat_id, target, task_id, templates=None):
+async def spam_loop(bot, chat_id, target, task_id, bot_index, total_bots, templates=None):
     patterns = templates or ALL_SPAM_TEMPLATES
     db.save_active(chat_id, target, "spam")
     i = 0
-    backoff = 1.0
+    
+    await asyncio.sleep(bot_index * 0.03)
+    
     try:
         while True:
             if controller.should_stop(chat_id, task_id): break
@@ -582,7 +586,7 @@ async def spam_loop(bot, chat_id, target, task_id, templates=None):
             if controller.rate_limit_hit:
                 current_group = 0 if bot.id in controller.bot_groups[0] else 1
                 if current_group != controller.active_group:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.1)
                     continue
             
             msg = patterns[i % len(patterns)].replace('{target}', target)
@@ -590,27 +594,27 @@ async def spam_loop(bot, chat_id, target, task_id, templates=None):
                 await bot.send_message(chat_id, msg)
                 if controller.rate_limit_hit:
                     controller.rate_limit_hit = False
-                    backoff = 1.0
             except Exception as e:
                 err = str(e).lower()
                 if "flood" in err or "retry" in err or "too many" in err:
                     if not controller.rate_limit_hit:
                         controller.switch_bot_group()
-                        backoff = min(backoff * 1.5, 10.0)
-                        await asyncio.sleep(backoff)
+                    await asyncio.sleep(random.uniform(1.0, 2.0))
                 else:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.01)
             
             i += 1
-            if controller.speed > 0: await asyncio.sleep(controller.speed)
-            else: await asyncio.sleep(0)
+            await asyncio.sleep(0.02 + (bot_index * 0.003))
+            
     except asyncio.CancelledError: pass
     except Exception: pass
 
-async def slide_loop(bot, chat_id, reply_to_msg_id, task_id, custom_text=None):
+async def slide_loop(bot, chat_id, reply_to_msg_id, task_id, bot_index, custom_text=None):
     db.save_active(chat_id, f"reply:{reply_to_msg_id}", "slide")
     last_text = None
-    backoff = 1.0
+    
+    await asyncio.sleep(bot_index * 0.03)
+    
     try:
         while True:
             if controller.should_stop(chat_id, task_id): break
@@ -618,7 +622,7 @@ async def slide_loop(bot, chat_id, reply_to_msg_id, task_id, custom_text=None):
             if controller.rate_limit_hit:
                 current_group = 0 if bot.id in controller.bot_groups[0] else 1
                 if current_group != controller.active_group:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.1)
                     continue
 
             if custom_text:
@@ -632,26 +636,26 @@ async def slide_loop(bot, chat_id, reply_to_msg_id, task_id, custom_text=None):
                 await bot.send_message(chat_id=chat_id, text=slide_text, reply_to_message_id=reply_to_msg_id)
                 if controller.rate_limit_hit:
                     controller.rate_limit_hit = False
-                    backoff = 1.0
             except Exception as e:
                 err = str(e).lower()
                 if "flood" in err or "retry" in err or "too many" in err:
                     if not controller.rate_limit_hit:
                         controller.switch_bot_group()
-                        backoff = min(backoff * 1.5, 10.0)
-                        await asyncio.sleep(backoff)
+                    await asyncio.sleep(random.uniform(1.0, 2.0))
                 else:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.01)
             
-            if controller.speed > 0: await asyncio.sleep(controller.speed)
-            else: await asyncio.sleep(0)
+            await asyncio.sleep(0.03 + (bot_index * 0.003))
+            
     except asyncio.CancelledError: pass
     except Exception: pass
 
-async def raid_task(bot, chat_id, target, task_id, bot_index, style, mode):
+async def raid_task(bot, chat_id, target, task_id, bot_index, total_bots, style, mode):
     rot = bot_index
-    backoff = 1.0
     db.save_active(chat_id, target, "raid")
+    
+    await asyncio.sleep(bot_index * 0.04)
+    
     try:
         while True:
             if controller.should_stop(chat_id, task_id): break
@@ -659,7 +663,7 @@ async def raid_task(bot, chat_id, target, task_id, bot_index, style, mode):
             if controller.rate_limit_hit:
                 current_group = 0 if bot.id in controller.bot_groups[0] else 1
                 if current_group != controller.active_group:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.1)
                     continue
             
             if style == 1: subject = raid_style1_subject(target, rot)
@@ -669,29 +673,27 @@ async def raid_task(bot, chat_id, target, task_id, bot_index, style, mode):
             elif style == 5: subject = raid_style5_subject(target, rot)
             else: subject = raid_style6_subject(target, mode, rot)
             
-            # Const font enforcement inside loop
             subject = to_fancy(subject)
             
             try:
                 await bot.set_chat_title(chat_id, subject[:255])
                 if controller.rate_limit_hit:
                     controller.rate_limit_hit = False
-                    backoff = 1.0
             except Exception as e:
                 err = str(e).lower()
                 if "flood" in err or "retry" in err or "too many" in err:
                     if not controller.rate_limit_hit:
                         controller.switch_bot_group()
-                        backoff = min(backoff * 2, 10.0)
-                        await asyncio.sleep(backoff)
+                    await asyncio.sleep(random.uniform(1.0, 2.0))
                 else:
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(0.01)
             
             rot += 1
-            if controller.speed > 0: await asyncio.sleep(controller.speed)
-            else: await asyncio.sleep(0)
+            await asyncio.sleep(0.03 + (bot_index * 0.004))
+            
     except asyncio.CancelledError: pass
     except Exception: pass
+
 
 # ==================== COMMAND HANDLERS ====================
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
