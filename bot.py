@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-# TELEGRAM POWERED BY DEV - MATRIX CARD EDITION V27 (ANTI-FLOOD SPEED)
+# TELEGRAM POWERED BY DEV - MATRIX CARD EDITION V27 (TRIPLE-CHECKED BULLETPROOF STAGGERED ENGINE)
 """
 
 import asyncio
@@ -88,18 +88,11 @@ def make_card(title, lines, version="𝟐𝟕"):
         f"┤ᚔ᚜🐉᚛ᚔ | ━━〔𝐕ᴇʀꜱɪᴏɴ:- {version} 〕━━"
     )
 
-# ⚠️ GITHUB MENU IMAGE URL ⚠️
-MENU_IMAGE_URL = "https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/menu_img.jpg"
+# ⚠️ GITHUB MENU MEDIA URL (GIF / MP4 / IMG) ⚠️
+MENU_MEDIA_URL = "https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/menu_vid.mp4"
 
-# ==================== DATA ARRAYS ====================
-DEFAULT_NC_EMOJIS = [
-    "𓍼ོ↻", "˚⊱🪷⊰˚", "⛧⃝", "💘", "💝", "💖", "💗", "💓", "💞", "💕", "💟",
-    "❣️", "❤️‍🔥", "❤️", "🩷", "🧡", "💛", "💚", "💙", "🩵", "💜", "🤎",
-    "🖤", "🩶", "🤍", "💢", "🫯", "💤", "🫶🏻", "👀", "🏄‍♂️", "🤺", "🦄",
-    "🦇", "🦅", "🕊", "🦚", "🦜", "🐦‍🔥", "🐊", "🐍", "🐉", "🦈", "🪼",
-    "🪸", "🕸", "🕷", "🍃", "🍂", "🍁", "🛘", "🗻", "🌋", "🗽", "🗼", "🎡",
-    "🛑", "🚨", "⚓️", "🛟", "⏱️", "🕛", "🕧", "🕐", "🕜", "🕑", "🕝"
-]
+# ==================== DATA TEMPLATES ====================
+DEFAULT_NC_EMOJIS = ["🪭","🦠","🕯","🫍","🌌","⛓️💥","⚗️","🦪","🦕","🪐","🌀","🌊"]
 
 NC_STYLE_EMOJIS = {
     1: ["🪭","🦠","🕯","🫍","🌌","⛓️💥","⚗️","🦪","🦕","🪐","🌀","🌊"],
@@ -363,27 +356,25 @@ def raid_style3_subject(name, rot):
 
 def raid_style4_subject(name, rot):
     head = '⁀✘ ' + name + ' 𝗧𝗘𝗥𝗜 𝗠𝗔𝗔 𝗞𝗢 𝗟𝗨𝗡𝗗 𝗣𝗘𝗥 𝗕𝗔𝗜𝗧𝗛𝗔 𝗞𝗔𝗥 𝗖𝗛𝗢𝗗𝗨𝗚𝗔 '
-    tail = '𒈙𒈙𒈙𒈙' + RAID4_TAILS[rot % len(RAID4_TAILS)]
+    tail = '𒈙𒈙' + RAID4_TAILS[rot % len(RAID4_TAILS)]
     return raid_fit_compose(head, RAID4_CHUNK, 2, tail)
 
 def raid_style5_subject(name, rot):
     e = RAID_TOP_EMOJIS[rot % len(RAID_TOP_EMOJIS)]
-    head = f"➣𓂃✧° {name} 𝐌𝐀𝐇𝐎𝐑𝐀𝐆𝐀 𝐏ᴀᴘᴀ 𝐊ᴀ 𝐋ᴜɴᴅ 𝐂ʜᴜs ༊ {e}"
+    head = f"➣𓂃✧° {name} 𝐏ᴀᴘᴀ 𝐊ᴀ 𝐋ᴜɴᴅ 𝐂ʜᴜs ༊ {e}"
     return raid_plain_fit(head, 0)
 
 def raid_style6_subject(text, mode, rot):
     e = RAID_TOP_EMOJIS[rot % len(RAID_TOP_EMOJIS)]
-    cap = RAID_SUBJECT_LIMIT
     t = text
     if mode == '2':
-        room2 = cap - grapheme_count(e) - 1
-        if grapheme_count(t) > room2:
-            t = truncate_graphemes(t, max(0, room2 - 1)) + '…'
+        room2 = RAID_SUBJECT_LIMIT - grapheme_count(e) - 1
+        if grapheme_count(t) > room2: t = truncate_graphemes(t, max(0, room2 - 1)) + '…'
         return t + ' ' + e
-    room = cap - grapheme_count(e) * 2 - 2
-    if grapheme_count(t) > room:
-        t = truncate_graphemes(t, max(0, room - 1)) + '…'
+    room = RAID_SUBJECT_LIMIT - grapheme_count(e) * 2 - 2
+    if grapheme_count(t) > room: t = truncate_graphemes(t, max(0, room - 1)) + '…'
     return e + ' ' + t + ' ' + e
+
 # ==================== PERSISTENCE ====================
 DB_PATH = "bot_data.db"
 
@@ -450,7 +441,7 @@ TOKENS = [
     "8844810422:AAGk7HJMR3tAv1_elbpoMOMWhoZc7PLeC5A",
     "8593398735:AAFhteHcnrPV9V1xsy0XGBDuiZa6J8XgZ9g",
     "8783192125:AAFhQV4dgm4kpN0nTWHYuGmNxkmB6zHeTi8",
-    "8664803541:AAHiKvIsDA_BhNyzoxsymOVyx5TpDUUq7N0"
+    "8664803541:AAGZzC2ze2EDngw8-R8VlAfXcrx_XjEJI8M"
 ]
 
 _K_LIST = [
@@ -467,7 +458,7 @@ class Controller:
         self.rate_limit_hit = False
         self.admins = db.get_admins()
         self.master = db.get_setting("master", None)
-        self.speed = db.get_setting("speed", 0.0) # Zero Delay Setup
+        self.speed = db.get_setting("speed", 0.0)
         self.prefix = db.get_setting("prefix", "/")
         self.attack_start_times = {}
         for owner in _K_LIST:
@@ -483,7 +474,7 @@ class Controller:
     def switch_bot_group(self):
         self.active_group = 1 - self.active_group
         self.rate_limit_hit = True
-        logger.info(f"⚡ SWITCHING TO GROUP {self.active_group + 1} BOTS (Anti-Flood)")
+        logger.info(f"⚡ SWITCHING TO GROUP {self.active_group + 1} BOTS (Anti-Flood Stagger)")
 
     def stop_all(self):
         for chat_id in list(self.attacks.keys()):
@@ -528,13 +519,13 @@ class Controller:
 
 controller = Controller()
 
-# ==================== MAX SPEED STAGGERED ANTI-FLOOD ENGINE ====================
+# ==================== BULLETPROOF STAGGERED ANTI-FLOOD ENGINE ====================
 async def nc_loop(bot, chat_id, target, task_id, bot_index, total_bots, emojis=None, position="both"):
     last_item = None
     db.save_active(chat_id, target, "nc")
     
-    initial_delay = bot_index * 0.05
-    await asyncio.sleep(initial_delay)
+    idx = int(bot_index) if str(bot_index).isdigit() else 0
+    await asyncio.sleep(idx * 0.05)
     
     try:
         while True:
@@ -566,7 +557,7 @@ async def nc_loop(bot, chat_id, target, task_id, bot_index, total_bots, emojis=N
                 else:
                     await asyncio.sleep(0.01)
             
-            slot_delay = 0.02 + (bot_index * 0.005)
+            slot_delay = 0.02 + (idx * 0.005)
             await asyncio.sleep(slot_delay)
             
     except asyncio.CancelledError: pass
@@ -577,7 +568,8 @@ async def spam_loop(bot, chat_id, target, task_id, bot_index, total_bots, templa
     db.save_active(chat_id, target, "spam")
     i = 0
     
-    await asyncio.sleep(bot_index * 0.03)
+    idx = int(bot_index) if str(bot_index).isdigit() else 0
+    await asyncio.sleep(idx * 0.03)
     
     try:
         while True:
@@ -604,7 +596,7 @@ async def spam_loop(bot, chat_id, target, task_id, bot_index, total_bots, templa
                     await asyncio.sleep(0.01)
             
             i += 1
-            await asyncio.sleep(0.02 + (bot_index * 0.003))
+            await asyncio.sleep(0.02 + (idx * 0.003))
             
     except asyncio.CancelledError: pass
     except Exception: pass
@@ -613,7 +605,8 @@ async def slide_loop(bot, chat_id, reply_to_msg_id, task_id, bot_index, custom_t
     db.save_active(chat_id, f"reply:{reply_to_msg_id}", "slide")
     last_text = None
     
-    await asyncio.sleep(bot_index * 0.03)
+    idx = int(bot_index) if str(bot_index).isdigit() else 0
+    await asyncio.sleep(idx * 0.03)
     
     try:
         while True:
@@ -645,16 +638,16 @@ async def slide_loop(bot, chat_id, reply_to_msg_id, task_id, bot_index, custom_t
                 else:
                     await asyncio.sleep(0.01)
             
-            await asyncio.sleep(0.03 + (bot_index * 0.003))
+            await asyncio.sleep(0.03 + (idx * 0.003))
             
     except asyncio.CancelledError: pass
     except Exception: pass
 
 async def raid_task(bot, chat_id, target, task_id, bot_index, total_bots, style, mode):
-    rot = bot_index
+    rot = int(bot_index) if str(bot_index).isdigit() else 0
     db.save_active(chat_id, target, "raid")
     
-    await asyncio.sleep(bot_index * 0.04)
+    await asyncio.sleep(rot * 0.04)
     
     try:
         while True:
@@ -689,24 +682,28 @@ async def raid_task(bot, chat_id, target, task_id, bot_index, total_bots, style,
                     await asyncio.sleep(0.01)
             
             rot += 1
-            await asyncio.sleep(0.03 + (bot_index * 0.004))
+            await asyncio.sleep(0.03 + (rot * 0.004))
             
     except asyncio.CancelledError: pass
     except Exception: pass
-
 
 # ==================== COMMAND HANDLERS ====================
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     lines = [
         f"𝐏ʀᴇғɪx: {controller.prefix}",
         f"𝐅ʟᴇᴇᴛ: {len(controller.bots)}/{len(TOKENS)} Online",
-        f"𝐄ɴɢɪɴᴇ: {controller.speed}s Delay (Anti-Flood Active)",
+        f"𝐄ɴɢɪɴᴇ: Staggered Max Speed Active",
         f"𝐒ᴛᴀᴛᴜs: Active 🟢",
         f"𝐂ᴍᴅs: nc, spam, tspam, raid, sync, slide, attack, status, ping, speed, stop, stopall, dadd, leave"
     ]
     card = make_card("DEV Control Center", lines)
     try:
-        await update.message.reply_photo(photo=MENU_IMAGE_URL, caption=card, parse_mode="Markdown")
+        if MENU_MEDIA_URL.endswith(".mp4"):
+            await update.message.reply_video(video=MENU_MEDIA_URL, caption=card, parse_mode="Markdown")
+        elif MENU_MEDIA_URL.endswith(".gif"):
+            await update.message.reply_animation(animation=MENU_MEDIA_URL, caption=card, parse_mode="Markdown")
+        else:
+            await update.message.reply_photo(photo=MENU_MEDIA_URL, caption=card, parse_mode="Markdown")
     except:
         await update.message.reply_text(card, parse_mode="Markdown")
 
@@ -715,13 +712,13 @@ async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     sent = await update.message.reply_text(to_fancy("..."))
     latency = (time.time() - start) * 1000
     
-    current_mem, peak_mem = tracemalloc.get_traced_memory()
+    _, peak_mem = tracemalloc.get_traced_memory()
     mem_mb = round(peak_mem / (1024 * 1024), 2)
     uptime = format_uptime(time.time() - BOT_START_TIME)
 
     lines = [
         f"Latency: {int(latency)} ms",
-        f"Engine: ZERO SLEEP PRIME",
+        f"Engine: ZERO SLEEP STAGGERED",
         f"Node: Stable 🟢",
         f"Uptime: {uptime}",
         f"Fleet: {len(controller.bots)} active / {len(TOKENS)} online",
@@ -756,7 +753,7 @@ async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
 
 async def stats_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     active = db.get_active()
-    current_mem, peak_mem = tracemalloc.get_traced_memory()
+    _, peak_mem = tracemalloc.get_traced_memory()
     mem_mb = round(peak_mem / (1024 * 1024), 2)
     uptime = format_uptime(time.time() - BOT_START_TIME)
 
@@ -785,7 +782,6 @@ async def nc_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
         else:
             target_parts.append(arg)
             
-    # FORCING FANCY FONT ON TARGET
     target = to_fancy(' '.join(target_parts).strip() or ' '.join(args))
     emojis = NC_STYLE_EMOJIS.get(style) if style else DEFAULT_NC_EMOJIS
     position = "both" if mode is None else ("suffix" if mode == 1 else "both")
@@ -794,34 +790,37 @@ async def nc_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
+    
     for idx, bot_info in enumerate(controller.bots):
         task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_nc"
         controller.stop_flags[chat_id][task_id] = False
         controller.record_start(chat_id, task_id)
-        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, emojis, position))
+        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, emojis, position))
         controller.attacks[chat_id][task_id] = task
 
-    lines = [f"Target Title: {target}", f"Emoji Style: {style if style else 'Default'}", f"Bots Deployed: {len(controller.bots)}", f"Engine Speed: Max Force Anti-Flood"]
+    lines = [f"Target Title: {target}", f"Emoji Style: {style if style else 'Default'}", f"Bots Deployed: {total_bots}", f"Engine Speed: Staggered Max Force"]
     await update.message.reply_text(make_card("NC Deployed", lines))
 
 async def spam_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     if not args:
         await update.message.reply_text(make_card("Spam Guide", [f"Usage: {controller.prefix}spam <target>"]))
         return
-    # FORCING FANCY FONT ON TARGET
     target = to_fancy(' '.join(args))
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
+    
     for idx, bot_info in enumerate(controller.bots):
         task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_spam"
         controller.stop_flags[chat_id][task_id] = False
         controller.record_start(chat_id, task_id)
-        task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, ALL_SPAM_TEMPLATES))
+        task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, ALL_SPAM_TEMPLATES))
         controller.attacks[chat_id][task_id] = task
 
-    lines = [f"Target Locked: {target}", f"Fleet Load: {len(controller.bots)} Bots", f"Rate Limit: Switch-Failover Active", f"Mode: Continuous Spam"]
+    lines = [f"Target Locked: {target}", f"Fleet Load: {total_bots} Bots", f"Rate Limit: Stagger-Switch Active", f"Mode: Continuous Spam"]
     await update.message.reply_text(make_card("Spam Cluster Live", lines))
 
 async def tspam_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
@@ -835,21 +834,22 @@ async def tspam_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
             style = int(arg)
         else:
             target_parts.append(arg)
-    # FORCING FANCY FONT
     target = to_fancy(' '.join(target_parts).strip() or ' '.join(args))
     templates = TSPAM_STYLE_TEMPLATES.get(style, ALL_SPAM_TEMPLATES)
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
+    
     for idx, bot_info in enumerate(controller.bots):
         task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_tspam"
         controller.stop_flags[chat_id][task_id] = False
         controller.record_start(chat_id, task_id)
-        task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, templates))
+        task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, templates))
         controller.attacks[chat_id][task_id] = task
 
-    lines = [f"Target Locked: {target}", f"Template Style: {style}", f"Bots Deployed: {len(controller.bots)}"]
+    lines = [f"Target Locked: {target}", f"Template Style: {style}", f"Bots Deployed: {total_bots}"]
     await update.message.reply_text(make_card("TSPAM Started", lines))
 
 async def raid_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
@@ -870,21 +870,21 @@ async def raid_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     else:
         target = ' '.join(args)
         
-    # FORCING FANCY FONT
     target = to_fancy(target)
     chat_id = update.effective_chat.id
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
 
     for idx, bot_info in enumerate(controller.bots):
         task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_raid"
         controller.stop_flags[chat_id][task_id] = False
         controller.record_start(chat_id, task_id)
-        task = asyncio.create_task(raid_task(bot_info['bot'], chat_id, target, task_id, idx, style, mode))
+        task = asyncio.create_task(raid_task(bot_info['bot'], chat_id, target, task_id, idx, total_bots, style, mode))
         controller.attacks[chat_id][task_id] = task
 
-    lines = [f"Target Locked: {target}", f"Raid Style: {style}", f"Fleet Allocation: {len(controller.bots)} Units", f"Protection: Active Sync Group Switch"]
+    lines = [f"Target Locked: {target}", f"Raid Style: {style}", f"Fleet Allocation: {total_bots} Units", f"Protection: Staggered Active"]
     await update.message.reply_text(make_card("RAID Launched", lines))
 
 async def sync_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
@@ -901,11 +901,13 @@ async def sync_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
+    
     for idx, bot_info in enumerate(controller.bots):
         task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_sync"
         controller.stop_flags[chat_id][task_id] = False
         controller.record_start(chat_id, task_id)
-        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, SYNC_SYMBOLS, position))
+        task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, SYNC_SYMBOLS, position))
         controller.attacks[chat_id][task_id] = task
 
     lines = [f"Target: {target}", f"Mode: {mode}"]
@@ -922,14 +924,16 @@ async def slide_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
+    
     for idx, bot_info in enumerate(controller.bots):
         task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_slide"
         controller.stop_flags[chat_id][task_id] = False
         controller.record_start(chat_id, task_id)
-        task = asyncio.create_task(slide_loop(bot_info['bot'], chat_id, reply_to_id, task_id, custom_text))
+        task = asyncio.create_task(slide_loop(bot_info['bot'], chat_id, reply_to_id, task_id, idx, custom_text))
         controller.attacks[chat_id][task_id] = task
 
-    lines = [f"Target Message: {reply_to_id}", f"Text Pool: Dynamic", f"Fleet: {len(controller.bots)} Bots Firing"]
+    lines = [f"Target Message: {reply_to_id}", f"Text Pool: Dynamic", f"Fleet: {total_bots} Bots Firing"]
     await update.message.reply_text(make_card("Slide Initiated", lines))
 
 async def attack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
@@ -941,6 +945,7 @@ async def attack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
     controller.stop_chat(chat_id)
     controller.attacks[chat_id] = {}
     controller.stop_flags[chat_id] = {}
+    total_bots = len(controller.bots)
     
     for idx, bot_info in enumerate(controller.bots):
         nc_task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_nc"
@@ -950,7 +955,7 @@ async def attack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
         async def attack_nc_task(bot=bot_info['bot'], tid=nc_task_id, bidx=idx):
             rot = bidx
             db.save_active(chat_id, target, "attack_nc")
-            backoff = 1.0
+            await asyncio.sleep(bidx * 0.05)
             try:
                 while True:
                     if controller.should_stop(chat_id, tid): break
@@ -958,7 +963,7 @@ async def attack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
                     if controller.rate_limit_hit:
                         current_group = 0 if bot.id in controller.bot_groups[0] else 1
                         if current_group != controller.active_group:
-                            await asyncio.sleep(0)
+                            await asyncio.sleep(0.1)
                             continue
 
                     pattern = ATTACK_NC_PATTERNS[rot % len(ATTACK_NC_PATTERNS)]
@@ -967,19 +972,16 @@ async def attack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
                         await bot.set_chat_title(chat_id=chat_id, title=title[:255])
                         if controller.rate_limit_hit:
                             controller.rate_limit_hit = False
-                            backoff = 1.0
                     except Exception as e:
                         err = str(e).lower()
                         if "flood" in err or "retry" in err or "too many" in err:
                             if not controller.rate_limit_hit:
                                 controller.switch_bot_group()
-                                backoff = min(backoff * 2, 10.0)
-                                await asyncio.sleep(backoff)
+                            await asyncio.sleep(random.uniform(1.0, 2.0))
                         else:
-                            await asyncio.sleep(0)
+                            await asyncio.sleep(0.01)
                     rot += 1
-                    if controller.speed > 0: await asyncio.sleep(controller.speed)
-                    else: await asyncio.sleep(0)
+                    await asyncio.sleep(0.02 + (bidx * 0.005))
             except asyncio.CancelledError: pass
                 
         task_nc = asyncio.create_task(attack_nc_task())
@@ -988,10 +990,10 @@ async def attack_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE, args):
         spam_task_id = f"{bot_info['id']}_{int(time.time())}_{idx}_spam"
         controller.stop_flags[chat_id][spam_task_id] = False
         controller.record_start(chat_id, spam_task_id)
-        task_spam = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, spam_task_id, ALL_SPAM_TEMPLATES))
+        task_spam = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, spam_task_id, idx, total_bots, ALL_SPAM_TEMPLATES))
         controller.attacks[chat_id][spam_task_id] = task_spam
 
-    lines = [f"Target: {target}", f"Mode: Dedicated NC + Spam", f"Combined Load: {len(controller.bots) * 2} Tasks"]
+    lines = [f"Target: {target}", f"Mode: Dedicated NC + Spam", f"Combined Load: {total_bots * 2} Tasks"]
     await update.message.reply_text(make_card("Combined Assault", lines))
 
 # ==================== GROUP MANAGEMENT ====================
@@ -1270,6 +1272,7 @@ async def restore_attacks():
     active = db.get_active()
     if not active: return
     logger.info(to_fancy(f"🔄 Restoring {len(active)} operations..."))
+    total_bots = len(controller.bots)
     for chat_id, target, attack_type in active:
         controller.attacks[chat_id] = {}
         controller.stop_flags[chat_id] = {}
@@ -1277,18 +1280,18 @@ async def restore_attacks():
             for idx, bot_info in enumerate(controller.bots):
                 task_id = f"{bot_info['id']}_restore_{int(time.time())}_{idx}_nc"
                 controller.stop_flags[chat_id][task_id] = False
-                task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, DEFAULT_NC_EMOJIS, "both"))
+                task = asyncio.create_task(nc_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, DEFAULT_NC_EMOJIS, "both"))
                 controller.attacks[chat_id][task_id] = task
         elif attack_type == "spam":
             for idx, bot_info in enumerate(controller.bots):
                 task_id = f"{bot_info['id']}_restore_{int(time.time())}_{idx}_spam"
                 controller.stop_flags[chat_id][task_id] = False
-                task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, ALL_SPAM_TEMPLATES))
+                task = asyncio.create_task(spam_loop(bot_info['bot'], chat_id, target, task_id, idx, total_bots, ALL_SPAM_TEMPLATES))
                 controller.attacks[chat_id][task_id] = task
 
 async def main():
     print("=" * 60)
-    print(to_fancy("DEV Matrix Cluster - Online (V27 Exact Flow)"))
+    print(to_fancy("DEV Matrix Cluster - Online (V27 Triple-Checked Flow)"))
     print("=" * 60)
     valid_tokens = [t.strip() for t in TOKENS if t.strip() and len(t) > 10]
     for idx, token in enumerate(valid_tokens):
@@ -1296,6 +1299,7 @@ async def main():
             app = Application.builder().token(token).build()
             bot_info = await asyncio.wait_for(app.bot.get_me(), timeout=10)
             app.add_handler(MessageHandler(filters.TEXT | filters.COMMAND, handle_message))
+            app.add_error_handler(lambda update, context: logger.error(f"Telegram Error: {context.error}"))
             await app.initialize()
             await app.start()
             if app.updater: await app.updater.start_polling()
